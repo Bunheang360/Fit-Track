@@ -1,5 +1,5 @@
 import 'package:uuid/uuid.dart';
-import '../constants/enums.dart';
+import '../../core/constants/enums.dart';
 
 class User {
   User({

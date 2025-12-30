@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../services/local_storage.dart';
-import '../authentication/signup_screen.dart';
-import '../../start_screen.dart';
+import '../../../data/datasources/local_storage.dart';
+import 'signup_screen.dart';
+import '../home/home_screen.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);

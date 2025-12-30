@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'services/local_storage.dart';
-import 'ui/start_screen.dart';
+import 'data/datasources/local_storage.dart';
+import 'ui/screens/home/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

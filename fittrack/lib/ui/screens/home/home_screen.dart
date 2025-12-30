@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/local_storage.dart';
-import './screens/authentication/login_screen.dart';
+import '../../../data/datasources/local_storage.dart';
+import '../authentication/login_screen.dart';
 
 class Home extends StatelessWidget {
   Home({super.key, required Null Function() onStartPressed});
