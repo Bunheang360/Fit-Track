@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/datasources/local_storage.dart';
+import '/ui/screens/assessment_screen.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -276,7 +277,15 @@ class _SignupState extends State<Signup> {
 
                         _formKey.currentState?.reset();
 
-                        Navigator.pop(context);
+                        // Navigate to assessment screen
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AssessmentScreen(
+                              username: _controllerUsername.text,
+                            ),
+                          ),
+                        );
                       }
                     },
                     child: const Text(

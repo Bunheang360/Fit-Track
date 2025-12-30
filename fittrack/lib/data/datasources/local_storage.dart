@@ -48,16 +48,15 @@ class LocalStorageService {
     if (!_storage.containsKey(name)) {
       _storage[name] = {};
     }
-    return StorageBox(name, _storage[name]!, _saveStorage);
+    return StorageBox(_storage[name]!, _saveStorage);
   }
 }
 
 class StorageBox {
-  final String _name;
   final Map<String, dynamic> _data;
   final Future<void> Function() _onSave;
 
-  StorageBox(this._name, this._data, this._onSave);
+  StorageBox(this._data, this._onSave);
 
   Future<void> put(String key, dynamic value) async {
     _data[key] = value;
