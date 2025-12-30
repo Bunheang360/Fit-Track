@@ -1,27 +1,25 @@
 import 'package:flutter/material.dart';
-import '../../services/local_storage.dart';
+import '../../../services/local_storage.dart';
+import '../authentication/signup_screen.dart';
+import '../../start_screen.dart';
 
-class Signup extends StatefulWidget {
-  const Signup({super.key});
+class Login extends StatefulWidget {
+  const Login({Key? key}) : super(key: key);
 
   @override
-  State<Signup> createState() => _SignupState();
+  State<Login> createState() => _LoginState();
 }
 
-class _SignupState extends State<Signup> {
+class _LoginState extends State<Login> {
   final GlobalKey<FormState> _formKey = GlobalKey();
 
-  final FocusNode _focusNodeEmail = FocusNode();
   final FocusNode _focusNodePassword = FocusNode();
-  final FocusNode _focusNodeConfirmPassword = FocusNode();
   final TextEditingController _controllerUsername = TextEditingController();
-  final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
-  final TextEditingController _controllerConfirmPassword =
-      TextEditingController();
 
-  final _boxAccounts = LocalStorageService().openBox("accounts");
   bool _obscurePassword = true;
+  final _boxLogin = LocalStorageService().openBox("login");
+  final _boxAccounts = LocalStorageService().openBox("accounts");
 
   @override
   Widget build(BuildContext context) {
@@ -44,10 +42,10 @@ class _SignupState extends State<Signup> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                
-                // Register title
+
+                // Login title
                 Text(
-                  "Register",
+                  "Login",
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -55,7 +53,7 @@ class _SignupState extends State<Signup> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                
+
                 // Username field
                 Text(
                   "Username",
@@ -82,57 +80,18 @@ class _SignupState extends State<Signup> {
                       vertical: 16,
                     ),
                   ),
+                  onEditingComplete: () => _focusNodePassword.requestFocus(),
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Please enter username.";
-                    } else if (_boxAccounts.containsKey(value)) {
-                      return "Username is already registered.";
+                    } else if (!_boxAccounts.containsKey(value)) {
+                      return "Username is not registered.";
                     }
                     return null;
                   },
-                  onEditingComplete: () => _focusNodeEmail.requestFocus(),
                 ),
                 const SizedBox(height: 20),
-                
-                // Email field
-                Text(
-                  "Email",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[800],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _controllerEmail,
-                  focusNode: _focusNodeEmail,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: "Enter your email",
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                  ),
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please enter email.";
-                    } else if (!(value.contains('@') && value.contains('.'))) {
-                      return "Invalid email";
-                    }
-                    return null;
-                  },
-                  onEditingComplete: () => _focusNodePassword.requestFocus(),
-                ),
-                const SizedBox(height: 20),
-                
+
                 // Password field
                 Text(
                   "Password",
@@ -145,8 +104,8 @@ class _SignupState extends State<Signup> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _controllerPassword,
-                  obscureText: _obscurePassword,
                   focusNode: _focusNodePassword,
+                  obscureText: _obscurePassword,
                   keyboardType: TextInputType.visiblePassword,
                   decoration: InputDecoration(
                     hintText: "Enter your password",
@@ -177,68 +136,16 @@ class _SignupState extends State<Signup> {
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Please enter password.";
-                    } else if (value.length < 8) {
-                      return "Password must be at least 8 characters.";
-                    }
-                    return null;
-                  },
-                  onEditingComplete: () => _focusNodeConfirmPassword.requestFocus(),
-                ),
-                const SizedBox(height: 20),
-                
-                // Confirm Password field
-                Text(
-                  "Confirm Password",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[800],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _controllerConfirmPassword,
-                  obscureText: _obscurePassword,
-                  focusNode: _focusNodeConfirmPassword,
-                  keyboardType: TextInputType.visiblePassword,
-                  decoration: InputDecoration(
-                    hintText: "Confirm your password",
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ),
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please confirm password.";
-                    } else if (value != _controllerPassword.text) {
-                      return "Password doesn't match.";
+                    } else if (value !=
+                        _boxAccounts.get(_controllerUsername.text)) {
+                      return "Wrong password.";
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 40),
-                
-                // Register button
+
+                // Login button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -253,33 +160,26 @@ class _SignupState extends State<Signup> {
                     ),
                     onPressed: () {
                       if (_formKey.currentState?.validate() ?? false) {
-                        _boxAccounts.put(
-                          _controllerUsername.text,
-                          _controllerConfirmPassword.text,
-                        );
+                        _boxLogin.put("loginStatus", true);
+                        _boxLogin.put("userName", _controllerUsername.text);
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            width: 200,
-                            backgroundColor: Colors.green,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            behavior: SnackBarBehavior.floating,
-                            content: const Text(
-                              "Registered Successfully",
-                              style: TextStyle(color: Colors.white),
-                            ),
+                        // Navigate to StartScreen
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return Home(
+                                onStartPressed: () {
+                                  // This callback can be used if StartScreen needs to do something
+                                },
+                              );
+                            },
                           ),
                         );
-
-                        _formKey.currentState?.reset();
-
-                        Navigator.pop(context);
                       }
                     },
                     child: const Text(
-                      "Register",
+                      "Login",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -288,23 +188,30 @@ class _SignupState extends State<Signup> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                
-                // Login link
+
+                // Sign up link
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Already have an account ? ",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[700],
-                        ),
+                        "Don't have an account ? ",
+                        style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.pop(context),
+                        onTap: () {
+                          _formKey.currentState?.reset();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return const Signup();
+                              },
+                            ),
+                          );
+                        },
                         child: Text(
-                          "Login",
+                          "Register",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -325,13 +232,9 @@ class _SignupState extends State<Signup> {
 
   @override
   void dispose() {
-    _focusNodeEmail.dispose();
     _focusNodePassword.dispose();
-    _focusNodeConfirmPassword.dispose();
     _controllerUsername.dispose();
-    _controllerEmail.dispose();
     _controllerPassword.dispose();
-    _controllerConfirmPassword.dispose();
     super.dispose();
   }
 }

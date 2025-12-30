@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../services/local_storage.dart';
-import 'login_screen.dart';
+import '../services/local_storage.dart';
+import './screens/authentication/login_screen.dart';
 
 class Home extends StatelessWidget {
   Home({super.key, required Null Function() onStartPressed});
@@ -12,9 +12,7 @@ class Home extends StatelessWidget {
     _boxLogin.put("loginStatus", false);
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => const Login(),
-      ),
+      MaterialPageRoute(builder: (context) => const Login()),
     );
   }
 

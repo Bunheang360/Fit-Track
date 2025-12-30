@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
@@ -28,7 +27,10 @@ class LocalStorageService {
       try {
         final contents = await storageFile.readAsString();
         final jsonData = jsonDecode(contents) as Map<String, dynamic>;
-        _storage = jsonData.map((key, value) => MapEntry(key, Map<String, dynamic>.from(value as Map)));
+        _storage = jsonData.map(
+          (key, value) =>
+              MapEntry(key, Map<String, dynamic>.from(value as Map)),
+        );
       } catch (e) {
         _storage = {};
       }
