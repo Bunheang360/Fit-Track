@@ -3,13 +3,11 @@ import '../../../data/datasources/local_storage.dart';
 import '../authentication/login_screen.dart';
 
 class Home extends StatelessWidget {
-  Home({super.key, required Null Function() onStartPressed});
-
-  final _boxLogin = LocalStorageService().openBox("login");
+  const Home({super.key});
 
   void _logout(BuildContext context) {
-    _boxLogin.clear();
-    _boxLogin.put("loginStatus", false);
+    final loginStorage = JsonStorage('login.json');
+    loginStorage.clear();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const Login()),

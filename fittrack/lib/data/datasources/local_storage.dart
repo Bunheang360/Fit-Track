@@ -1,91 +1,91 @@
 import 'dart:convert';
-import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
-class LocalStorageService {
-  static final LocalStorageService _instance = LocalStorageService._internal();
-  Map<String, Map<String, dynamic>> _storage = {};
-  late Directory _appDirectory;
-  bool _initialized = false;
+class JsonStorage {
+  final String fileName;
+  late String filePath;
 
-  factory LocalStorageService() {
-    return _instance;
+  JsonStorage(this.fileName) {
+    final directory = Directory('lib/data/storage');
+    if (!directory.existsSync()) {
+      directory.createSync(recursive: true);
+    }
+    filePath = '${directory.path}/$fileName';
   }
 
-  LocalStorageService._internal();
-
-  Future<void> initialize() async {
-    if (_initialized) return;
-    _appDirectory = await getApplicationDocumentsDirectory();
-    await _loadAllBoxes();
-    _initialized = true;
-  }
-
-  Future<void> _loadAllBoxes() async {
-    final storageFile = File('${_appDirectory.path}/fittrack_storage.json');
-    if (await storageFile.exists()) {
-      try {
-        final contents = await storageFile.readAsString();
-        final jsonData = jsonDecode(contents) as Map<String, dynamic>;
-        _storage = jsonData.map(
-          (key, value) =>
-              MapEntry(key, Map<String, dynamic>.from(value as Map)),
-        );
-      } catch (e) {
-        _storage = {};
+  List<Map<String, dynamic>> read() {
+    try {
+      final file = File(filePath);
+      if (!file.existsSync()) {
+        return [];
       }
+      final contents = file.readAsStringSync();
+      if (contents.isEmpty) {
+        return [];
+      }
+      final List<dynamic> jsonData = jsonDecode(contents);
+      return jsonData.cast<Map<String, dynamic>>();
+    } catch (e) {
+      print('Error reading file: $e');
+      return [];
+    }
+  }
+
+  void write(List<Map<String, dynamic>> data) {
+    try {
+      final file = File(filePath);
+      final jsonString = jsonEncode(data);
+      file.writeAsStringSync(jsonString);
+    } catch (e) {
+      print('Error writing to file: $e');
+    }
+  }
+
+  void clear() {
+    try {
+      final file = File(filePath);
+      if (file.existsSync()) {
+        file.deleteSync();
+      }
+    } catch (e) {
+      print('Error clearing file: $e');
+    }
+  }
+
+  // Helper methods for key-value operations
+  Map<String, dynamic>? getByKey(String key) {
+    final data = read();
+    try {
+      return data.firstWhere((item) => item['key'] == key);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void putKeyValue(String key, dynamic value) {
+    final data = read();
+    final index = data.indexWhere((item) => item['key'] == key);
+    if (index >= 0) {
+      data[index] = {'key': key, 'value': value};
     } else {
-      _storage = {};
+      data.add({'key': key, 'value': value});
     }
-  }
-
-  Future<void> _saveStorage() async {
-    final storageFile = File('${_appDirectory.path}/fittrack_storage.json');
-    await storageFile.writeAsString(jsonEncode(_storage));
-  }
-
-  StorageBox openBox(String name) {
-    if (!_storage.containsKey(name)) {
-      _storage[name] = {};
-    }
-    return StorageBox(_storage[name]!, _saveStorage);
-  }
-}
-
-class StorageBox {
-  final Map<String, dynamic> _data;
-  final Future<void> Function() _onSave;
-
-  StorageBox(this._data, this._onSave);
-
-  Future<void> put(String key, dynamic value) async {
-    _data[key] = value;
-    await _onSave();
-  }
-
-  dynamic get(String key) {
-    return _data[key];
+    write(data);
   }
 
   bool containsKey(String key) {
-    return _data.containsKey(key);
+    final data = read();
+    return data.any((item) => item['key'] == key);
   }
 
-  Future<void> delete(String key) async {
-    _data.remove(key);
-    await _onSave();
+  dynamic getValue(String key) {
+    final item = getByKey(key);
+    return item?['value'];
   }
 
-  Future<void> clear() async {
-    _data.clear();
-    await _onSave();
-  }
-
-  List<String> keys() {
-    return _data.keys.toList();
-  }
-
-  List<dynamic> values() {
-    return _data.values.toList();
+  void deleteKey(String key) {
+    final data = read();
+    data.removeWhere((item) => item['key'] == key);
+    write(data);
   }
 }
