@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../../data/datasources/local_storage.dart';
-import '../authentication/login_screen.dart';
+import '../data/repositories/setting_repositories.dart';
+import 'pages/authentication/login_screen.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
 
   void _logout(BuildContext context) {
-    final loginStorage = JsonStorage('login.json');
-    loginStorage.clear();
+    final settingsRepository = SettingsRepository();
+    settingsRepository.setLoggedOut();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const Login()),

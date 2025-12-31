@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../data/datasources/local_storage.dart';
-import '/ui/screens/assessment_screen.dart';
+import '../../../data/repositories/user_repositories.dart';
+import '../assessment/question_screen.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -21,7 +21,7 @@ class _SignupState extends State<Signup> {
   final TextEditingController _controllerConfirmPassword =
       TextEditingController();
 
-  final _storage = JsonStorage('accounts.json');
+  final _userRepository = UserRepository();
   bool _obscurePassword = true;
 
   @override
@@ -86,8 +86,6 @@ class _SignupState extends State<Signup> {
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Please enter username.";
-                    } else if (_storage.containsKey(value)) {
-                      return "Username is already registered.";
                     }
                     return null;
                   },
@@ -253,40 +251,46 @@ class _SignupState extends State<Signup> {
                       ),
                       elevation: 0,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState?.validate() ?? false) {
-                        // Save account data
-                        _storage.putKeyValue(
-                          _controllerUsername.text,
-                          _controllerConfirmPassword.text,
-                        );
+                        final username = _controllerUsername.text;
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            width: 200,
-                            backgroundColor: Colors.green,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            behavior: SnackBarBehavior.floating,
-                            content: const Text(
-                              "Registered Successfully",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
+                        // Check if username already exists
+                        final exists = await _userRepository.usernameExists(
+                          username,
                         );
+                        if (exists) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text(
+                                  'Username is already registered',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                backgroundColor: Colors.red,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                          }
+                          return;
+                        }
 
-                        _formKey.currentState?.reset();
-
-                        // Navigate to assessment screen
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AssessmentScreen(
-                              username: _controllerUsername.text,
+                        // Navigate to assessment questions
+                        if (mounted) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AssessmentQuestionsScreen(
+                                username: _controllerUsername.text,
+                                email: _controllerEmail.text,
+                                password: _controllerPassword.text,
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       }
                     },
                     child: const Text(

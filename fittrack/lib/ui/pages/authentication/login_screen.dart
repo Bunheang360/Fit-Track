@@ -1,12 +1,11 @@
+import 'package:fittrack/data/repositories/setting_repositories.dart';
+import 'package:fittrack/data/repositories/user_repositories.dart';
 import 'package:flutter/material.dart';
-import '../../../data/datasources/local_storage.dart';
 import 'signup_screen.dart';
-import '../home/home_screen.dart';
+import '../../start_screen.dart';
 
 class Login extends StatefulWidget {
-  const Login({
-    super.key,
-  });
+  const Login({super.key});
 
   @override
   State<Login> createState() => _LoginState();
@@ -14,13 +13,14 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   final GlobalKey<FormState> _formKey = GlobalKey();
-
   final FocusNode _focusNodePassword = FocusNode();
   final TextEditingController _controllerUsername = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
-
   bool _obscurePassword = true;
-  final _storage = JsonStorage('accounts.json');
+
+  // ✅ WEB COMPATIBLE: Use new repositories
+  final _userRepository = UserRepository();
+  final _settingsRepository = SettingsRepository();
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +35,9 @@ class _LoginState extends State<Login> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Logo
-                Center(
+                const Center(
                   child: Image(
-                    image: const AssetImage('assets/images/logo.png'),
+                    image: AssetImage('assets/images/logo.png'),
                     width: 120,
                     height: 120,
                   ),
@@ -45,7 +45,7 @@ class _LoginState extends State<Login> {
                 const SizedBox(height: 30),
 
                 // Login title
-                Text(
+                const Text(
                   "Login",
                   style: TextStyle(
                     fontSize: 28,
@@ -85,8 +85,6 @@ class _LoginState extends State<Login> {
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Please enter username.";
-                    } else if (!_storage.containsKey(value)) {
-                      return "Username is not registered.";
                     }
                     return null;
                   },
@@ -137,9 +135,6 @@ class _LoginState extends State<Login> {
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Please enter password.";
-                    } else if (value !=
-                        _storage.getValue(_controllerUsername.text)) {
-                      return "Wrong password.";
                     }
                     return null;
                   },
@@ -159,20 +154,48 @@ class _LoginState extends State<Login> {
                       ),
                       elevation: 0,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState?.validate() ?? false) {
-                        // Store login status
-                        final loginStorage = JsonStorage('login.json');
-                        loginStorage.putKeyValue('loginStatus', 'true');
-                        loginStorage.putKeyValue('userName', _controllerUsername.text);
+                        final username = _controllerUsername.text;
+                        final password = _controllerPassword.text;
 
-                        // Navigate to Home
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const Home(),
-                          ),
+                        // ✅ WEB COMPATIBLE: Use async/await
+                        final isValid = await _userRepository.validateLogin(
+                          username,
+                          password,
                         );
+
+                        if (isValid) {
+                          // Save login state
+                          _settingsRepository.setLoggedIn(username);
+
+                          // Navigate to Home
+                          if (mounted) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const Home(),
+                              ),
+                            );
+                          }
+                        } else {
+                          // Show error
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text(
+                                  'Invalid username or password',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                backgroundColor: Colors.red,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                          }
+                        }
                       }
                     },
                     child: const Text(
@@ -201,9 +224,7 @@ class _LoginState extends State<Login> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) {
-                                return const Signup();
-                              },
+                              builder: (context) => const Signup(),
                             ),
                           );
                         },

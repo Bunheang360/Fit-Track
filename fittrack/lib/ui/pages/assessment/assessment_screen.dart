@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import './question_screen.dart';
 
 class AssessmentScreen extends StatelessWidget {
   final String username;
+  final String email;
+  final String password;
 
   const AssessmentScreen({
     super.key,
     required this.username,
+    required this.email,
+    required this.password,
   });
 
   @override
@@ -97,7 +102,8 @@ class AssessmentScreen extends StatelessWidget {
                 _buildFeatureItem(
                   icon: Icons.fitness_center,
                   title: "Custom Workouts",
-                  description: "Get personalized workout plans tailored to your goals",
+                  description:
+                      "Get personalized workout plans tailored to your goals",
                 ),
                 const SizedBox(height: 20),
                 _buildFeatureItem(
@@ -127,11 +133,14 @@ class AssessmentScreen extends StatelessWidget {
                       elevation: 0,
                     ),
                     onPressed: () {
-                      // Navigate to next screen (e.g., workout plan screen)
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Assessment started!"),
-                          duration: Duration(seconds: 2),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AssessmentQuestionsScreen(
+                            username: username,
+                            email: email,
+                            password: password,
+                          ),
                         ),
                       );
                     },
@@ -153,10 +162,7 @@ class AssessmentScreen extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.orange[800],
                       minimumSize: const Size.fromHeight(55),
-                      side: BorderSide(
-                        color: Colors.orange[800]!,
-                        width: 2,
-                      ),
+                      side: BorderSide(color: Colors.orange[800]!, width: 2),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -196,11 +202,7 @@ class AssessmentScreen extends StatelessWidget {
             color: Colors.orange[800],
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            color: Colors.white,
-            size: 24,
-          ),
+          child: Icon(icon, color: Colors.white, size: 24),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -218,10 +220,7 @@ class AssessmentScreen extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 description,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[400],
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey[400]),
               ),
             ],
           ),
