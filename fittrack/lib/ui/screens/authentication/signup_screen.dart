@@ -21,7 +21,7 @@ class _SignupState extends State<Signup> {
   final TextEditingController _controllerConfirmPassword =
       TextEditingController();
 
-  final _boxAccounts = LocalStorageService().openBox("accounts");
+  final _storage = JsonStorage('accounts.json');
   bool _obscurePassword = true;
 
   @override
@@ -86,7 +86,7 @@ class _SignupState extends State<Signup> {
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Please enter username.";
-                    } else if (_boxAccounts.containsKey(value)) {
+                    } else if (_storage.containsKey(value)) {
                       return "Username is already registered.";
                     }
                     return null;
@@ -255,7 +255,8 @@ class _SignupState extends State<Signup> {
                     ),
                     onPressed: () {
                       if (_formKey.currentState?.validate() ?? false) {
-                        _boxAccounts.put(
+                        // Save account data
+                        _storage.putKeyValue(
                           _controllerUsername.text,
                           _controllerConfirmPassword.text,
                         );

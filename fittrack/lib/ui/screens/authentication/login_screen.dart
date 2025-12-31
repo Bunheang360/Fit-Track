@@ -20,8 +20,7 @@ class _LoginState extends State<Login> {
   final TextEditingController _controllerPassword = TextEditingController();
 
   bool _obscurePassword = true;
-  final _boxLogin = LocalStorageService().openBox("login");
-  final _boxAccounts = LocalStorageService().openBox("accounts");
+  final _storage = JsonStorage('accounts.json');
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +85,7 @@ class _LoginState extends State<Login> {
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Please enter username.";
-                    } else if (!_boxAccounts.containsKey(value)) {
+                    } else if (!_storage.containsKey(value)) {
                       return "Username is not registered.";
                     }
                     return null;
@@ -139,7 +138,7 @@ class _LoginState extends State<Login> {
                     if (value == null || value.isEmpty) {
                       return "Please enter password.";
                     } else if (value !=
-                        _boxAccounts.get(_controllerUsername.text)) {
+                        _storage.getValue(_controllerUsername.text)) {
                       return "Wrong password.";
                     }
                     return null;
@@ -162,20 +161,16 @@ class _LoginState extends State<Login> {
                     ),
                     onPressed: () {
                       if (_formKey.currentState?.validate() ?? false) {
-                        _boxLogin.put("loginStatus", true);
-                        _boxLogin.put("userName", _controllerUsername.text);
+                        // Store login status
+                        final loginStorage = JsonStorage('login.json');
+                        loginStorage.putKeyValue('loginStatus', 'true');
+                        loginStorage.putKeyValue('userName', _controllerUsername.text);
 
-                        // Navigate to StartScreen
+                        // Navigate to Home
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) {
-                              return Home(
-                                onStartPressed: () {
-                                  // This callback can be used if StartScreen needs to do something
-                                },
-                              );
-                            },
+                            builder: (context) => const Home(),
                           ),
                         );
                       }

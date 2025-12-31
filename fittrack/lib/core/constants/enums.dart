@@ -1,6 +1,8 @@
 enum GoalTier { primary, supportive, recovery }
 
-enum Gender { male, female }
+enum Gender { male, female, preferNotToSay }
+
+enum QuestionType { singleChoice, multipleChoice, number, scale, text }
 
 enum Categories {
   strength,
@@ -136,6 +138,8 @@ extension GenderExtension on Gender {
         return 'Male';
       case Gender.female:
         return 'Female';
+      case Gender.preferNotToSay:
+        return 'Prefer not to say';
     }
   }
 }
