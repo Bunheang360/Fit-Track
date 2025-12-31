@@ -3,8 +3,10 @@ import '../../core/constants/enums.dart';
 
 class User {
   User({
+    String? id,
     required this.name,
     required this.email,
+    this.password,
     required this.age,
     required this.gender,
     required this.weight,
@@ -15,12 +17,13 @@ class User {
     required this.selectedDays,
     this.workoutPlanId,
   }) {
-    id = const Uuid().v4();
+    this.id = id ?? const Uuid().v4();
   }
 
   late final String id;
   String name;
   String email;
+  String? password;
   final int age;
   final Gender gender;
   final double weight;
@@ -30,4 +33,54 @@ class User {
   final List<Categories> selectedCategories;
   final List<DayOfWeek> selectedDays;
   String? workoutPlanId;
+
+  /// Convert User to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'password': password,
+      'age': age,
+      'gender': gender.name,
+      'weight': weight,
+      'height': height,
+      'selectedPlan': selectedPlan.name,
+      'selectedLevel': selectedLevel.name,
+      'selectedCategories': selectedCategories.map((c) => c.name).toList(),
+      'selectedDays': selectedDays.map((d) => d.name).toList(),
+      'workoutPlanId': workoutPlanId,
+    };
+  }
+
+  /// Create User from JSON
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      email: json['email'] as String,
+      password: json['password'] as String?,
+      age: json['age'] as int,
+      gender: Gender.values.firstWhere((g) => g.name == json['gender']),
+      weight: (json['weight'] as num).toDouble(),
+      height: (json['height'] as num).toDouble(),
+      selectedPlan: Plan.values.firstWhere((p) => p.name == json['selectedPlan']),
+      selectedLevel: Level.values.firstWhere((l) => l.name == json['selectedLevel']),
+      selectedCategories: (json['selectedCategories'] as List)
+          .map((c) => Categories.values.firstWhere((cat) => cat.name == c))
+          .toList(),
+      selectedDays: (json['selectedDays'] as List)
+          .map((d) => DayOfWeek.values.firstWhere((day) => day.name == d))
+          .toList(),
+      workoutPlanId: json['workoutPlanId'] as String?,
+    );
+  }
+
+  /// Helper method - get primary goal
+  Categories? get primaryGoal {
+    final primaryGoals = selectedCategories
+        .where((cat) => cat.tier == GoalTier.primary)
+        .toList();
+    return primaryGoals.isNotEmpty ? primaryGoals.first : null;
+  }
 }
