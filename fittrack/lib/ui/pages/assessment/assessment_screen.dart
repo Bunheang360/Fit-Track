@@ -103,7 +103,7 @@ class AssessmentScreen extends StatelessWidget {
                   icon: Icons.fitness_center,
                   title: "Custom Workouts",
                   description:
-                      "Get personalized workout plans tailored to your goals",
+                  "Get personalized workout plans tailored to your goals",
                 ),
                 const SizedBox(height: 20),
                 _buildFeatureItem(
