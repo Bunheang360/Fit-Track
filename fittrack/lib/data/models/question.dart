@@ -157,7 +157,7 @@ class AssessmentSession {
   Gender _parseGender(dynamic answer) {
     if (answer == 'male') return Gender.male;
     if (answer == 'female') return Gender.female;
-    return Gender.preferNotToSay; // Add this to your enum if needed
+    return Gender.preferNotToSay;
   }
 
   Plan _parsePlan(dynamic answer) {

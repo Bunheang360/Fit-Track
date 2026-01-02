@@ -3,7 +3,7 @@ import '../../../data/models/user.dart';
 import '../../../data/repositories/user_repositories.dart';
 import '../../../data/repositories/setting_repositories.dart';
 import '../../../core/constants/enums.dart';
-import '../../start_screen.dart';
+import 'summary_screen.dart';
 import 'screens/age_page.dart';
 import 'screens/categories_page.dart';
 import 'screens/gender_page.dart';
@@ -118,10 +118,10 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
       ),
     );
 
-    // Navigate to home
+    // Navigate to summary screen
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const Home()),
+      MaterialPageRoute(builder: (context) => SummaryScreen(user: user)),
     );
   }
 
