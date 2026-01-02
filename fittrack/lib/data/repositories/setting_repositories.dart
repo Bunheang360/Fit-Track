@@ -1,125 +1,118 @@
+// ==============================================================================
+// FILE: lib/data/repositories/settings_repository.dart
+// Simple settings using SharedPreferences (works everywhere)
+// ==============================================================================
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Model for app settings (type-safe alternative to Map)
-class AppSettings {
-  final bool isLoggedIn;
-  final String? currentUsername;
-
-  AppSettings({
-    required this.isLoggedIn,
-    this.currentUsername,
-  });
-
-  factory AppSettings.fromJson(Map<String, dynamic> json) {
-    return AppSettings(
-      isLoggedIn: json['isLoggedIn'] as bool? ?? false,
-      currentUsername: json['currentUsername'] as String?,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'isLoggedIn': isLoggedIn,
-      'currentUsername': currentUsername,
-    };
-  }
-
-  factory AppSettings.loggedIn(String username) {
-    return AppSettings(
-      isLoggedIn: true,
-      currentUsername: username,
-    );
-  }
-
-  factory AppSettings.loggedOut() {
-    return AppSettings(
-      isLoggedIn: false,
-      currentUsername: null,
-    );
-  }
-}
-
-/// Repository for app settings (Web Compatible)
-/// Uses SharedPreferences instead of File system
 class SettingsRepository {
-  static const String _settingsKey = 'app_settings';
-
-  /// Get current settings
-  Future<AppSettings> getSettings() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(_settingsKey);
-
-      if (jsonString == null || jsonString.isEmpty) {
-        return AppSettings.loggedOut();
-      }
-
-      // Parse JSON string manually (simple approach)
-      final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-      final username = prefs.getString('currentUsername');
-
-      return AppSettings(
-        isLoggedIn: isLoggedIn,
-        currentUsername: username,
-      );
-    } catch (e) {
-      print('Error reading settings: $e');
-      return AppSettings.loggedOut();
-    }
-  }
-
-  /// Save settings
-  Future<void> saveSettings(AppSettings settings) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', settings.isLoggedIn);
-
-      if (settings.currentUsername != null) {
-        await prefs.setString('currentUsername', settings.currentUsername!);
-      } else {
-        await prefs.remove('currentUsername');
-      }
-
-      print('Settings saved');
-    } catch (e) {
-      print('Error saving settings: $e');
-      rethrow;
-    }
-  }
-
-  /// Set user as logged in
-  Future<void> setLoggedIn(String username) async {
-    await saveSettings(AppSettings.loggedIn(username));
-    print('User logged in: $username');
-  }
-
-  /// Set user as logged out
-  Future<void> setLoggedOut() async {
-    await saveSettings(AppSettings.loggedOut());
-    print('User logged out');
-  }
+  static const String _keyIsLoggedIn = 'isLoggedIn';
+  static const String _keyUserId = 'currentUserId';
+  static const String _keyUsername = 'currentUsername';
 
   /// Check if user is logged in
   Future<bool> isLoggedIn() async {
-    final settings = await getSettings();
-    return settings.isLoggedIn;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isLoggedIn = prefs.getBool(_keyIsLoggedIn) ?? false;
+      print('🔍 Login status: $isLoggedIn');
+      return isLoggedIn;
+    } catch (e) {
+      print('❌ Error checking login status: $e');
+      return false;
+    }
+  }
+
+  /// Get current logged in user ID
+  Future<String?> getCurrentUserId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString(_keyUserId);
+      print('🔍 Current user ID: $userId');
+      return userId;
+    } catch (e) {
+      print('❌ Error getting user ID: $e');
+      return null;
+    }
   }
 
   /// Get current logged in username
   Future<String?> getCurrentUsername() async {
-    final settings = await getSettings();
-    return settings.currentUsername;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final username = prefs.getString(_keyUsername);
+      print('🔍 Current username: $username');
+      return username;
+    } catch (e) {
+      print('❌ Error getting username: $e');
+      return null;
+    }
+  }
+
+  /// Set user as logged in
+  Future<void> setLoggedIn(String userId, String username) async {
+    try {
+      print('');
+      print('==================================================');
+      print('🔐 LOGGING IN USER');
+      print('==================================================');
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_keyIsLoggedIn, true);
+      await prefs.setString(_keyUserId, userId);
+      await prefs.setString(_keyUsername, username);
+
+      print('✅ User logged in successfully');
+      print('  - User ID: $userId');
+      print('  - Username: $username');
+      print('==================================================');
+      print('');
+    } catch (e) {
+      print('❌ Error setting login: $e');
+      rethrow;
+    }
+  }
+
+  /// Set user as logged out
+  Future<void> setLoggedOut() async {
+    try {
+      print('🚪 Logging out user');
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_keyIsLoggedIn, false);
+      await prefs.remove(_keyUserId);
+      await prefs.remove(_keyUsername);
+
+      print('✅ User logged out successfully');
+    } catch (e) {
+      print('❌ Error logging out: $e');
+    }
   }
 
   /// Clear all settings
   Future<void> clear() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('isLoggedIn');
-      await prefs.remove('currentUsername');
-      print('Settings cleared');
+      await prefs.remove(_keyIsLoggedIn);
+      await prefs.remove(_keyUserId);
+      await prefs.remove(_keyUsername);
+      print('✅ Settings cleared');
     } catch (e) {
-      print('Error clearing settings: $e');
+      print('❌ Error clearing settings: $e');
+    }
+  }
+
+  /// Debug: Print current settings
+  Future<void> debugPrintSettings() async {
+    try {
+      print('');
+      print('⚙️ === CURRENT SETTINGS ===');
+      print('  IsLoggedIn: ${await isLoggedIn()}');
+      print('  UserId: ${await getCurrentUserId()}');
+      print('  Username: ${await getCurrentUsername()}');
+      print('============================');
+      print('');
+    } catch (e) {
+      print('❌ Error printing settings: $e');
     }
   }
 }

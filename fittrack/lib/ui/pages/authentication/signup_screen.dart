@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/repositories/user_repositories.dart';
-import '../assessment/question_screen.dart';
+import '../assessment/assessment_intro_screen.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -278,12 +278,12 @@ class _SignupState extends State<Signup> {
                           return;
                         }
 
-                        // Navigate to assessment questions
+                        // Navigate to assessment intro screen (Frame 4)
                         if (mounted) {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => AssessmentQuestionsScreen(
+                              builder: (context) => AssessmentIntroScreen(
                                 username: _controllerUsername.text,
                                 email: _controllerEmail.text,
                                 password: _controllerPassword.text,

@@ -2,7 +2,7 @@ import 'package:fittrack/data/repositories/setting_repositories.dart';
 import 'package:fittrack/data/repositories/user_repositories.dart';
 import 'package:flutter/material.dart';
 import 'signup_screen.dart';
-import '../../start_screen.dart';
+import '../home/home_screen.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -32,14 +32,15 @@ class _LoginState extends State<Login> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(30.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Logo
-                const Image(
-                  image: AssetImage('assets/images/logo.png'),
-                  width: 120,
-                  height: 120,
+                const Center(
+                  child: Image(
+                    image: AssetImage('assets/images/logo.png'),
+                    width: 120,
+                    height: 120,
+                  ),
                 ),
                 const SizedBox(height: 30),
 
@@ -55,15 +56,12 @@ class _LoginState extends State<Login> {
                 const SizedBox(height: 30),
 
                 // Username field
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Username",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[800],
-                    ),
+                Text(
+                  "Username",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[800],
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -94,15 +92,12 @@ class _LoginState extends State<Login> {
                 const SizedBox(height: 20),
 
                 // Password field
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Password",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[800],
-                    ),
+                Text(
+                  "Password",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[800],
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -165,21 +160,24 @@ class _LoginState extends State<Login> {
                         final password = _controllerPassword.text;
 
                         // ✅ WEB COMPATIBLE: Use async/await
-                        final isValid = await _userRepository.validateLogin(
+                        final user = await _userRepository.validateLogin(
                           username,
                           password,
                         );
 
-                        if (isValid) {
+                        if (user != null) {
                           // Save login state
-                          _settingsRepository.setLoggedIn(username);
+                          await _settingsRepository.setLoggedIn(
+                            user.id,
+                            user.name,
+                          );
 
                           // Navigate to Home
                           if (mounted) {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const Home(),
+                                builder: (context) => const HomeScreen(),
                               ),
                             );
                           }
