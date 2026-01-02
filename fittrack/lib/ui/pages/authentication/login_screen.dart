@@ -32,15 +32,14 @@ class _LoginState extends State<Login> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(30.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Logo
-                const Center(
-                  child: Image(
-                    image: AssetImage('assets/images/logo.png'),
-                    width: 120,
-                    height: 120,
-                  ),
+                const Image(
+                  image: AssetImage('assets/images/logo.png'),
+                  width: 120,
+                  height: 120,
                 ),
                 const SizedBox(height: 30),
 
@@ -56,12 +55,15 @@ class _LoginState extends State<Login> {
                 const SizedBox(height: 30),
 
                 // Username field
-                Text(
-                  "Username",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[800],
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Username",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[800],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -92,12 +94,15 @@ class _LoginState extends State<Login> {
                 const SizedBox(height: 20),
 
                 // Password field
-                Text(
-                  "Password",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[800],
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Password",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[800],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
