@@ -1,36 +1,52 @@
 import 'package:flutter/material.dart';
+import '../data/models/user.dart';
 import '../data/repositories/setting_repositories.dart';
+import '../data/repositories/user_repositories.dart';
 import 'pages/authentication/login_screen.dart';
+import 'pages/home/home_screen.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
 
-  void _logout(BuildContext context) {
-    final settingsRepository = SettingsRepository();
-    settingsRepository.setLoggedOut();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const Login()),
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String?>(
+      future: _getLoggedInUsername(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const Login();
+        }
+
+        final username = snapshot.data!;
+        final userRepository = UserRepository();
+        return FutureBuilder<User?>(
+          future: userRepository.getUserByUsername(username),
+          builder: (context, userSnapshot) {
+            if (userSnapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (userSnapshot.hasError || userSnapshot.data == null) {
+              return const Login();
+            }
+
+            return HomeScreen(user: userSnapshot.data!);
+          },
+        );
+      },
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: GestureDetector(
-        onTap: () => _logout(context),
-        child: Center(
-          child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: const Image(
-              image: AssetImage('assets/images/logo.png'),
-              width: 200,
-              height: 200,
-            ),
-          ),
-        ),
-      ),
-    );
+  Future<String?> _getLoggedInUsername() async {
+    final settingsRepository = SettingsRepository();
+    return await settingsRepository.getCurrentUsername();
   }
 }
