@@ -1,25 +1,21 @@
-import 'package:fittrack/data/repositories/setting_repositories.dart';
-import 'package:fittrack/data/datasources/database_helper.dart';
-import 'package:fittrack/ui/pages/authentication/login_screen.dart';
-import 'package:fittrack/ui/pages/home/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'ui/start_screen.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  runApp(const FitTrackApp());
+}
 
-  // Initialize SQLite database
-  final db = DatabaseHelper();
-  await db.database; // This triggers database creation and seeding
-  print('✅ Database initialized');
+/// Main App Widget
+class FitTrackApp extends StatelessWidget {
+  const FitTrackApp({super.key});
 
-  // Check login status
-  final settingsRepository = SettingsRepository();
-  final isLoggedIn = await settingsRepository.isLoggedIn();
-
-  runApp(
-    MaterialApp(
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: isLoggedIn ? const HomeScreen() : const Login(),
-    ),
-  );
+      title: 'FitTrack',
+      home: StartScreen(),
+    );
+  }
 }

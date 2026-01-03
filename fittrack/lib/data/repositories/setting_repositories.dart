@@ -1,7 +1,3 @@
-// ==============================================================================
-// FILE: lib/data/repositories/settings_repository.dart
-// Simple settings using SharedPreferences (works everywhere)
-// ==============================================================================
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsRepository {
@@ -13,11 +9,8 @@ class SettingsRepository {
   Future<bool> isLoggedIn() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final isLoggedIn = prefs.getBool(_keyIsLoggedIn) ?? false;
-      print('🔍 Login status: $isLoggedIn');
-      return isLoggedIn;
+      return prefs.getBool(_keyIsLoggedIn) ?? false;
     } catch (e) {
-      print('❌ Error checking login status: $e');
       return false;
     }
   }
@@ -26,11 +19,8 @@ class SettingsRepository {
   Future<String?> getCurrentUserId() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getString(_keyUserId);
-      print('🔍 Current user ID: $userId');
-      return userId;
+      return prefs.getString(_keyUserId);
     } catch (e) {
-      print('❌ Error getting user ID: $e');
       return null;
     }
   }
@@ -39,11 +29,8 @@ class SettingsRepository {
   Future<String?> getCurrentUsername() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final username = prefs.getString(_keyUsername);
-      print('🔍 Current username: $username');
-      return username;
+      return prefs.getString(_keyUsername);
     } catch (e) {
-      print('❌ Error getting username: $e');
       return null;
     }
   }
@@ -51,23 +38,11 @@ class SettingsRepository {
   /// Set user as logged in
   Future<void> setLoggedIn(String userId, String username) async {
     try {
-      print('');
-      print('==================================================');
-      print('🔐 LOGGING IN USER');
-      print('==================================================');
-
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_keyIsLoggedIn, true);
       await prefs.setString(_keyUserId, userId);
       await prefs.setString(_keyUsername, username);
-
-      print('✅ User logged in successfully');
-      print('  - User ID: $userId');
-      print('  - Username: $username');
-      print('==================================================');
-      print('');
     } catch (e) {
-      print('❌ Error setting login: $e');
       rethrow;
     }
   }
@@ -75,16 +50,12 @@ class SettingsRepository {
   /// Set user as logged out
   Future<void> setLoggedOut() async {
     try {
-      print('🚪 Logging out user');
-
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_keyIsLoggedIn, false);
       await prefs.remove(_keyUserId);
       await prefs.remove(_keyUsername);
-
-      print('✅ User logged out successfully');
     } catch (e) {
-      print('❌ Error logging out: $e');
+      // Silently fail on logout errors
     }
   }
 
@@ -95,24 +66,8 @@ class SettingsRepository {
       await prefs.remove(_keyIsLoggedIn);
       await prefs.remove(_keyUserId);
       await prefs.remove(_keyUsername);
-      print('✅ Settings cleared');
     } catch (e) {
-      print('❌ Error clearing settings: $e');
-    }
-  }
-
-  /// Debug: Print current settings
-  Future<void> debugPrintSettings() async {
-    try {
-      print('');
-      print('⚙️ === CURRENT SETTINGS ===');
-      print('  IsLoggedIn: ${await isLoggedIn()}');
-      print('  UserId: ${await getCurrentUserId()}');
-      print('  Username: ${await getCurrentUsername()}');
-      print('============================');
-      print('');
-    } catch (e) {
-      print('❌ Error printing settings: $e');
+      // Silently fail on clear errors
     }
   }
 }

@@ -2,6 +2,8 @@ enum GoalTier { primary, supportive, recovery }
 
 enum Gender { male, female, preferNotToSay }
 
+enum AnalyticsPeriod { days, weeks, months }
+
 enum QuestionType { singleChoice, multipleChoice, number, scale, text }
 
 enum Categories {
@@ -34,6 +36,9 @@ enum DayOfWeek {
 enum SectionType { warmUp, mainWorkout, coolDown }
 
 enum BodyTarget { upperBody, lowerBody, core, fullBody }
+
+/// Navigation tabs for bottom navigation bar
+enum NavTab { home, analytics, settings }
 
 extension CategoriesExtension on Categories {
   String get displayName {

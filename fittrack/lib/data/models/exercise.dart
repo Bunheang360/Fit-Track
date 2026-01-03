@@ -96,10 +96,10 @@ class Exercise {
           .toList(),
       plan: Plan.values.firstWhere((p) => p.name == json['plan']),
       bodyTarget: BodyTarget.values.firstWhere(
-            (b) => b.name == json['bodyTarget'],
+        (b) => b.name == json['bodyTarget'],
       ),
       sectionType: SectionType.values.firstWhere(
-            (s) => s.name == json['sectionType'],
+        (s) => s.name == json['sectionType'],
       ),
       baseSets: json['baseSets'] as int,
       baseReps: json['baseReps'] as int,

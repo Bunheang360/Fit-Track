@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 /// Configuration for multi-select options
-class MultiSelectOption<T> {
-  final T value;
+/// Uses String for value to keep it simple
+class MultiSelectOption {
+  final String value;
   final String label;
 
   const MultiSelectOption({required this.value, required this.label});
@@ -16,12 +17,12 @@ enum MultiSelectStyle {
 
 /// Reusable multi-select question widget
 /// Used for Categories (chips) and Schedule (grid)
-class MultiSelectQuestion<T> extends StatefulWidget {
+class MultiSelectQuestion extends StatefulWidget {
   final String title;
   final String? subtitle;
-  final List<T> initialValues;
-  final List<MultiSelectOption<T>> options;
-  final Function(List<T>) onValuesChanged;
+  final List<String> initialValues;
+  final List<MultiSelectOption> options;
+  final Function(List<String>) onValuesChanged;
   final VoidCallback onNext;
   final bool isLastPage;
   final MultiSelectStyle style;
@@ -41,11 +42,11 @@ class MultiSelectQuestion<T> extends StatefulWidget {
   });
 
   @override
-  State<MultiSelectQuestion<T>> createState() => _MultiSelectQuestionState<T>();
+  State<MultiSelectQuestion> createState() => _MultiSelectQuestionState();
 }
 
-class _MultiSelectQuestionState<T> extends State<MultiSelectQuestion<T>> {
-  late List<T> _selectedValues;
+class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
+  late List<String> _selectedValues;
 
   @override
   void initState() {
@@ -53,7 +54,7 @@ class _MultiSelectQuestionState<T> extends State<MultiSelectQuestion<T>> {
     _selectedValues = List.from(widget.initialValues);
   }
 
-  void _toggleSelection(T value) {
+  void _toggleSelection(String value) {
     setState(() {
       if (_selectedValues.contains(value)) {
         _selectedValues.remove(value);
