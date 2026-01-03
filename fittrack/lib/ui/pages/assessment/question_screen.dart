@@ -4,7 +4,6 @@ import '../../../data/repositories/user_repositories.dart';
 import '../../../data/repositories/setting_repositories.dart';
 import '../../../core/constants/enums.dart';
 import '../home/home_screen.dart';
-// Reusable question widgets - no more 8 separate screen files!
 import '../../widgets/assessment/slider_question.dart';
 import '../../widgets/assessment/single_select_question.dart';
 import '../../widgets/assessment/multi_select_question.dart';
@@ -26,8 +25,7 @@ class AssessmentQuestionsScreen extends StatefulWidget {
       _AssessmentQuestionsScreenState();
 }
 
-class _AssessmentQuestionsScreenState
-    extends State<AssessmentQuestionsScreen> {
+class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
   final PageController _pageController = PageController();
   final _userRepository = UserRepository();
   final _settingsRepository = SettingsRepository();
@@ -97,10 +95,6 @@ class _AssessmentQuestionsScreenState
 
   Future<void> _completeAssessment() async {
     try {
-      print('');
-      print('🎯🎯🎯 STARTING ASSESSMENT COMPLETION 🎯🎯🎯');
-      print('');
-
       // Show loading
       showDialog(
         context: context,
@@ -125,22 +119,14 @@ class _AssessmentQuestionsScreenState
         selectedLevel: selectedLevel,
         selectedCategories: selectedCategories,
         selectedDays: selectedDays,
-        hasCompletedAssessment: true, // ⭐ VERY IMPORTANT!
+        hasCompletedAssessment: true,
       );
-
-      print('✅ User object created with ID: ${user.id}');
 
       // Save user to storage
       await _userRepository.saveUser(user);
-      print('✅ User saved to repository');
 
-      // Mark as logged in (use user.id instead of username)
+      // Mark as logged in
       await _settingsRepository.setLoggedIn(user.id, widget.username);
-      print('✅ Login status saved');
-
-      // Debug: Verify save
-      await _userRepository.debugPrintAllUsers();
-      await _settingsRepository.debugPrintSettings();
 
       // Close loading dialog
       if (mounted) Navigator.of(context).pop();
@@ -158,16 +144,7 @@ class _AssessmentQuestionsScreenState
           MaterialPageRoute(builder: (context) => const HomeScreen()),
         );
       }
-
-      print('');
-      print('✅✅✅ ASSESSMENT COMPLETED SUCCESSFULLY ✅✅✅');
-      print('');
     } catch (e) {
-      print('');
-      print('❌❌❌ ASSESSMENT COMPLETION FAILED ❌❌❌');
-      print('Error: $e');
-      print('');
-
       // Close loading dialog
       if (mounted) Navigator.of(context).pop();
 
@@ -189,9 +166,9 @@ class _AssessmentQuestionsScreenState
         ),
         leading: _currentPage > 0
             ? IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: _previousPage,
-        )
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: _previousPage,
+              )
             : null,
       ),
       body: PageView(
@@ -204,31 +181,39 @@ class _AssessmentQuestionsScreenState
         },
         children: [
           // 1. Age - Slider Question
-          SliderQuestion<int>(
+          SliderQuestion(
             title: "What's your Age?",
-            initialValue: age,
+            initialValue: age.toDouble(),
             minValue: 13,
             maxValue: 80,
             divisions: 67,
-            formatValue: (v) => '$v',
-            onValueChanged: (newAge) => setState(() => age = newAge),
+            showAsInteger: true,
+            onValueChanged: (newAge) => setState(() => age = newAge.toInt()),
             onNext: _nextPage,
           ),
 
           // 2. Gender - Single Select
-          SingleSelectQuestion<Gender>(
+          SingleSelectQuestion(
             title: "What is your gender?",
-            initialValue: selectedGender,
+            initialValue: selectedGender.name,
             options: [
-              SelectOption(value: Gender.male, label: 'Male', icon: Icons.male),
-              SelectOption(value: Gender.female, label: 'Female', icon: Icons.female),
+              SelectOption(value: 'male', label: 'Male', icon: Icons.male),
+              SelectOption(
+                value: 'female',
+                label: 'Female',
+                icon: Icons.female,
+              ),
             ],
-            onValueChanged: (gender) => setState(() => selectedGender = gender),
+            onValueChanged: (gender) => setState(() {
+              selectedGender = Gender.values.firstWhere(
+                (g) => g.name == gender,
+              );
+            }),
             onNext: _nextPage,
           ),
 
           // 3. Weight - Slider Question
-          SliderQuestion<double>(
+          SliderQuestion(
             title: "What's your current\nweight right now?",
             initialValue: weight,
             minValue: 30.0,
@@ -240,77 +225,116 @@ class _AssessmentQuestionsScreenState
           ),
 
           // 4. Height - Slider Question
-          SliderQuestion<double>(
+          SliderQuestion(
             title: "What is your height?",
             initialValue: height,
             minValue: 120.0,
             maxValue: 220.0,
             divisions: 100,
             unit: 'cm',
-            formatValue: (v) => '${v.toStringAsFixed(0)} cm',
+            showAsInteger: true,
             onValueChanged: (newHeight) => setState(() => height = newHeight),
             onNext: _nextPage,
           ),
 
           // 5. Plan - Single Select with descriptions
-          SingleSelectQuestion<Plan>(
+          SingleSelectQuestion(
             title: "Select your plan",
-            initialValue: selectedPlan,
+            initialValue: selectedPlan.name,
             showDescription: true,
             options: [
               SelectOption(
-                value: Plan.home,
+                value: 'home',
                 label: 'Home',
                 icon: Icons.home,
                 description: 'Workout at home with minimal equipment',
               ),
               SelectOption(
-                value: Plan.gym,
+                value: 'gym',
                 label: 'Gym',
                 icon: Icons.fitness_center,
                 description: 'Access to full gym equipment',
               ),
             ],
-            onValueChanged: (plan) => setState(() => selectedPlan = plan),
+            onValueChanged: (plan) => setState(() {
+              selectedPlan = Plan.values.firstWhere((p) => p.name == plan);
+            }),
             onNext: _nextPage,
           ),
 
           // 6. Categories - Multi Select (Chips)
-          MultiSelectQuestion<Categories>(
+          MultiSelectQuestion(
             title: "Categories",
             subtitle: "Select your fitness goals",
-            initialValues: selectedCategories,
+            initialValues: selectedCategories.map((cat) => cat.name).toList(),
             options: Categories.values
-                .map((cat) => MultiSelectOption(value: cat, label: cat.displayName))
+                .map(
+                  (cat) => MultiSelectOption(
+                    value: cat.name,
+                    label: cat.displayName,
+                  ),
+                )
                 .toList(),
-            onValuesChanged: (categories) =>
-                setState(() => selectedCategories = categories),
+            onValuesChanged: (categories) => setState(() {
+              selectedCategories = categories
+                  .map(
+                    (name) =>
+                        Categories.values.firstWhere((c) => c.name == name),
+                  )
+                  .toList();
+            }),
             onNext: _nextPage,
             style: MultiSelectStyle.chips,
           ),
 
           // 7. Level - Single Select
-          SingleSelectQuestion<Level>(
+          SingleSelectQuestion(
             title: "Select the level",
-            initialValue: selectedLevel,
+            initialValue: selectedLevel.name,
             options: [
-              SelectOption(value: Level.beginner, label: 'Beginner', icon: Icons.star_border),
-              SelectOption(value: Level.intermediate, label: 'Intermediate', icon: Icons.star_half),
-              SelectOption(value: Level.advanced, label: 'Advanced', icon: Icons.star),
+              SelectOption(
+                value: 'beginner',
+                label: 'Beginner',
+                icon: Icons.star_border,
+              ),
+              SelectOption(
+                value: 'intermediate',
+                label: 'Intermediate',
+                icon: Icons.star_half,
+              ),
+              SelectOption(
+                value: 'advanced',
+                label: 'Advanced',
+                icon: Icons.star,
+              ),
             ],
-            onValueChanged: (level) => setState(() => selectedLevel = level),
+            onValueChanged: (level) => setState(() {
+              selectedLevel = Level.values.firstWhere((l) => l.name == level);
+            }),
             onNext: _nextPage,
           ),
 
           // 8. Schedule - Multi Select (Grid)
-          MultiSelectQuestion<DayOfWeek>(
+          MultiSelectQuestion(
             title: "Select the schedule",
             subtitle: "Choose your workout days",
-            initialValues: selectedDays,
+            initialValues: selectedDays.map((day) => day.name).toList(),
             options: DayOfWeek.values
-                .map((day) => MultiSelectOption(value: day, label: day.displayName))
+                .map(
+                  (day) => MultiSelectOption(
+                    value: day.name,
+                    label: day.displayName,
+                  ),
+                )
                 .toList(),
-            onValuesChanged: (days) => setState(() => selectedDays = days),
+            onValuesChanged: (days) => setState(() {
+              selectedDays = days
+                  .map(
+                    (name) =>
+                        DayOfWeek.values.firstWhere((d) => d.name == name),
+                  )
+                  .toList();
+            }),
             onNext: _nextPage,
             isLastPage: true,
             style: MultiSelectStyle.grid,

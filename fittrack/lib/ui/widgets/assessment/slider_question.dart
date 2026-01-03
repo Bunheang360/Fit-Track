@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 /// Reusable slider question widget for numeric values (age, weight, height)
-/// Eliminates redundancy by using configuration instead of separate files
-class SliderQuestion<T extends num> extends StatefulWidget {
+/// Uses double for all numeric values to keep it simple
+class SliderQuestion extends StatefulWidget {
   final String title;
-  final T initialValue;
-  final T minValue;
-  final T maxValue;
+  final double initialValue;
+  final double minValue;
+  final double maxValue;
   final int? divisions;
   final String unit;
-  final String Function(T)? formatValue;
-  final Function(T) onValueChanged;
+  final bool showAsInteger; // If true, display as whole number (for age)
+  final Function(double) onValueChanged;
   final VoidCallback onNext;
   final bool isLastPage;
 
@@ -22,36 +22,28 @@ class SliderQuestion<T extends num> extends StatefulWidget {
     required this.maxValue,
     this.divisions,
     this.unit = '',
-    this.formatValue,
+    this.showAsInteger = false,
     required this.onValueChanged,
     required this.onNext,
     this.isLastPage = false,
   });
 
   @override
-  State<SliderQuestion<T>> createState() => _SliderQuestionState<T>();
+  State<SliderQuestion> createState() => _SliderQuestionState();
 }
 
-class _SliderQuestionState<T extends num> extends State<SliderQuestion<T>> {
+class _SliderQuestionState extends State<SliderQuestion> {
   late double _currentValue;
 
   @override
   void initState() {
     super.initState();
-    _currentValue = widget.initialValue.toDouble();
+    _currentValue = widget.initialValue;
   }
 
   String _getDisplayValue() {
-    if (widget.formatValue != null) {
-      if (T == int) {
-        return widget.formatValue!(_currentValue.toInt() as T);
-      } else {
-        return widget.formatValue!(_currentValue as T);
-      }
-    }
-
-    // Default formatting based on type
-    if (T == int) {
+    // Format based on whether we want integer or decimal display
+    if (widget.showAsInteger) {
       return '${_currentValue.toInt()}${widget.unit.isNotEmpty ? ' ${widget.unit}' : ''}';
     } else {
       return '${_currentValue.toStringAsFixed(1)}${widget.unit.isNotEmpty ? ' ${widget.unit}' : ''}';
@@ -62,13 +54,7 @@ class _SliderQuestionState<T extends num> extends State<SliderQuestion<T>> {
     setState(() {
       _currentValue = value;
     });
-
-    // Convert back to original type
-    if (T == int) {
-      widget.onValueChanged(value.toInt() as T);
-    } else {
-      widget.onValueChanged(double.parse(value.toStringAsFixed(1)) as T);
-    }
+    widget.onValueChanged(value);
   }
 
   @override
@@ -110,8 +96,8 @@ class _SliderQuestionState<T extends num> extends State<SliderQuestion<T>> {
                 // Slider
                 Slider(
                   value: _currentValue,
-                  min: widget.minValue.toDouble(),
-                  max: widget.maxValue.toDouble(),
+                  min: widget.minValue,
+                  max: widget.maxValue,
                   divisions: widget.divisions,
                   activeColor: Colors.orange[800],
                   inactiveColor: Colors.grey[700],

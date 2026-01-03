@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 /// Configuration for a single select option
-class SelectOption<T> {
-  final T value;
+/// Uses String for value to keep it simple
+class SelectOption {
+  final String value;
   final String label;
   final IconData icon;
   final String? description;
@@ -15,14 +16,14 @@ class SelectOption<T> {
   });
 }
 
-/// Reusable single-select question widget for enum-based choices
+/// Reusable single-select question widget for String-based choices
 /// Used for Gender, Level, Plan selections
-class SingleSelectQuestion<T> extends StatefulWidget {
+class SingleSelectQuestion extends StatefulWidget {
   final String title;
   final String? subtitle;
-  final T initialValue;
-  final List<SelectOption<T>> options;
-  final Function(T) onValueChanged;
+  final String initialValue;
+  final List<SelectOption> options;
+  final Function(String) onValueChanged;
   final VoidCallback onNext;
   final bool isLastPage;
   final bool showDescription; // For card-style options like Plan
@@ -40,12 +41,11 @@ class SingleSelectQuestion<T> extends StatefulWidget {
   });
 
   @override
-  State<SingleSelectQuestion<T>> createState() =>
-      _SingleSelectQuestionState<T>();
+  State<SingleSelectQuestion> createState() => _SingleSelectQuestionState();
 }
 
-class _SingleSelectQuestionState<T> extends State<SingleSelectQuestion<T>> {
-  late T _selectedValue;
+class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
+  late String _selectedValue;
 
   @override
   void initState() {
@@ -53,7 +53,7 @@ class _SingleSelectQuestionState<T> extends State<SingleSelectQuestion<T>> {
     _selectedValue = widget.initialValue;
   }
 
-  void _onOptionSelected(T value) {
+  void _onOptionSelected(String value) {
     setState(() {
       _selectedValue = value;
     });
@@ -137,7 +137,7 @@ class _SingleSelectQuestionState<T> extends State<SingleSelectQuestion<T>> {
   }
 
   /// Simple option button (Gender, Level)
-  Widget _buildSimpleOption(SelectOption<T> option, bool isSelected) {
+  Widget _buildSimpleOption(SelectOption option, bool isSelected) {
     return GestureDetector(
       onTap: () => _onOptionSelected(option.value),
       child: Container(
@@ -179,7 +179,7 @@ class _SingleSelectQuestionState<T> extends State<SingleSelectQuestion<T>> {
   }
 
   /// Card option with description (Plan)
-  Widget _buildCardOption(SelectOption<T> option, bool isSelected) {
+  Widget _buildCardOption(SelectOption option, bool isSelected) {
     return GestureDetector(
       onTap: () => _onOptionSelected(option.value),
       child: Container(

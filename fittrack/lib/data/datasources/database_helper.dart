@@ -38,8 +38,6 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, _databaseName);
 
-    print('📂 Database path: $path');
-
     return await openDatabase(
       path,
       version: _databaseVersion,
@@ -50,8 +48,6 @@ class DatabaseHelper {
 
   /// Create tables when database is first created
   Future<void> _onCreate(Database db, int version) async {
-    print('🔨 Creating database tables...');
-
     // Users table
     await db.execute('''
       CREATE TABLE $tableUsers (
@@ -71,7 +67,6 @@ class DatabaseHelper {
         createdAt TEXT NOT NULL
       )
     ''');
-    print('✅ Users table created');
 
     // Exercises table
     await db.execute('''
@@ -94,7 +89,6 @@ class DatabaseHelper {
         instructions TEXT NOT NULL
       )
     ''');
-    print('✅ Exercises table created');
 
     // Exercise sessions table
     await db.execute('''
@@ -110,7 +104,6 @@ class DatabaseHelper {
         FOREIGN KEY (exerciseId) REFERENCES $tableExercises (id)
       )
     ''');
-    print('✅ Sessions table created');
 
     // Seed exercises
     await _seedExercises(db);
@@ -118,19 +111,15 @@ class DatabaseHelper {
 
   /// Handle database upgrades
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    print('🔄 Upgrading database from v$oldVersion to v$newVersion');
     // Handle migrations here when schema changes
   }
 
   /// Seed default exercises into database
   Future<void> _seedExercises(Database db) async {
-    print('🌱 Seeding exercises...');
-
     final exercises = _getSeedExercises();
     for (final exercise in exercises) {
       await db.insert(tableExercises, _exerciseToMap(exercise));
     }
-    print('✅ Seeded ${exercises.length} exercises');
   }
 
   // ===========================================================================
@@ -145,7 +134,6 @@ class DatabaseHelper {
       _userToMap(user),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    print('✅ User inserted: ${user.name}');
   }
 
   /// Update existing user
@@ -157,7 +145,6 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [user.id],
     );
-    print('✅ User updated: ${user.name}');
   }
 
   /// Get all users
@@ -203,14 +190,12 @@ class DatabaseHelper {
   Future<void> deleteUser(String id) async {
     final db = await database;
     await db.delete(tableUsers, where: 'id = ?', whereArgs: [id]);
-    print('✅ User deleted: $id');
   }
 
   /// Delete all users
   Future<void> deleteAllUsers() async {
     final db = await database;
     await db.delete(tableUsers);
-    print('✅ All users deleted');
   }
 
   // ===========================================================================
@@ -292,7 +277,6 @@ class DatabaseHelper {
       _sessionToMap(session),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    print('✅ Session saved');
   }
 
   /// Get all sessions for a user
@@ -368,7 +352,6 @@ class DatabaseHelper {
     await close();
     await deleteDatabase(path);
     _database = await _initDatabase();
-    print('🔄 Database reset complete');
   }
 
   // ===========================================================================

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/repositories/user_repositories.dart';
-import '../assessment/assessment_intro_screen.dart';
+import '../assessment/assessment_screen.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -15,6 +15,7 @@ class _SignupState extends State<Signup> {
   final FocusNode _focusNodeEmail = FocusNode();
   final FocusNode _focusNodePassword = FocusNode();
   final FocusNode _focusNodeConfirmPassword = FocusNode();
+
   final TextEditingController _controllerUsername = TextEditingController();
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
@@ -22,7 +23,7 @@ class _SignupState extends State<Signup> {
       TextEditingController();
 
   final _userRepository = UserRepository();
-  bool _obscurePassword = true;
+  bool _password = true;
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +145,7 @@ class _SignupState extends State<Signup> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _controllerPassword,
-                  obscureText: _obscurePassword,
+                  obscureText: _password,
                   focusNode: _focusNodePassword,
                   keyboardType: TextInputType.visiblePassword,
                   decoration: InputDecoration(
@@ -162,11 +163,11 @@ class _SignupState extends State<Signup> {
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
-                          _obscurePassword = !_obscurePassword;
+                          _password = !_password;
                         });
                       },
                       icon: Icon(
-                        _obscurePassword
+                        _password
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
                         color: Colors.grey[600],
@@ -198,7 +199,7 @@ class _SignupState extends State<Signup> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _controllerConfirmPassword,
-                  obscureText: _obscurePassword,
+                  obscureText: _password,
                   focusNode: _focusNodeConfirmPassword,
                   keyboardType: TextInputType.visiblePassword,
                   decoration: InputDecoration(
@@ -216,11 +217,11 @@ class _SignupState extends State<Signup> {
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
-                          _obscurePassword = !_obscurePassword;
+                          _password = !_password;
                         });
                       },
                       icon: Icon(
-                        _obscurePassword
+                        _password
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
                         color: Colors.grey[600],

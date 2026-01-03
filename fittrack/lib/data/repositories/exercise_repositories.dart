@@ -1,7 +1,3 @@
-// ==============================================================================
-// FILE: lib/data/repositories/exercise_repository.dart
-// UPDATED to use SQLite Database
-// ==============================================================================
 import '../models/exercise.dart';
 import '../models/user.dart';
 import '../datasources/database_helper.dart';
@@ -13,11 +9,8 @@ class ExerciseRepository {
   /// Get all exercises
   Future<List<Exercise>> getAllExercises() async {
     try {
-      final exercises = await _db.getAllExercises();
-      print('📋 Total exercises in database: ${exercises.length}');
-      return exercises;
+      return await _db.getAllExercises();
     } catch (e) {
-      print('❌ Error getting exercises: $e');
       return [];
     }
   }
@@ -25,47 +18,34 @@ class ExerciseRepository {
   /// Get exercises filtered for user (matches plan and categories)
   Future<List<Exercise>> getExercisesForUser(User user) async {
     try {
-      final filtered = await _db.getExercisesForUser(user);
-      print('📋 Found ${filtered.length} exercises for user ${user.name}');
-      return filtered;
+      return await _db.getExercisesForUser(user);
     } catch (e) {
-      print('❌ Error getting exercises for user: $e');
       return [];
     }
   }
 
   /// Get exercises by section type (warmup, main, cooldown)
   Future<List<Exercise>> getExercisesBySection(
-      User user,
-      SectionType section,
-      ) async {
+    User user,
+    SectionType section,
+  ) async {
     try {
       final userExercises = await getExercisesForUser(user);
-      final filtered = userExercises
-          .where((e) => e.sectionType == section)
-          .toList();
-      print('📋 Found ${filtered.length} ${section.name} exercises');
-      return filtered;
+      return userExercises.where((e) => e.sectionType == section).toList();
     } catch (e) {
-      print('❌ Error getting exercises by section: $e');
       return [];
     }
   }
 
   /// Get exercises by body target
   Future<List<Exercise>> getExercisesByBodyTarget(
-      User user,
-      BodyTarget target,
-      ) async {
+    User user,
+    BodyTarget target,
+  ) async {
     try {
       final userExercises = await getExercisesForUser(user);
-      final filtered = userExercises
-          .where((e) => e.bodyTarget == target)
-          .toList();
-      print('📋 Found ${filtered.length} ${target.name} exercises');
-      return filtered;
+      return userExercises.where((e) => e.bodyTarget == target).toList();
     } catch (e) {
-      print('❌ Error getting exercises by body target: $e');
       return [];
     }
   }
@@ -73,11 +53,8 @@ class ExerciseRepository {
   /// Get exercises by plan type
   Future<List<Exercise>> getExercisesByPlan(Plan plan) async {
     try {
-      final exercises = await _db.getExercisesByPlan(plan);
-      print('📋 Found ${exercises.length} ${plan.name} exercises');
-      return exercises;
+      return await _db.getExercisesByPlan(plan);
     } catch (e) {
-      print('❌ Error getting exercises by plan: $e');
       return [];
     }
   }
@@ -96,7 +73,6 @@ class ExerciseRepository {
         userLevel: user.selectedLevel,
       );
     } catch (e) {
-      print('❌ Error creating workout plan: $e');
       return WorkoutPlan(
         warmupExercises: [],
         mainExercises: [],
@@ -129,7 +105,11 @@ class WorkoutPlan {
   int get estimatedDurationMinutes {
     int totalSeconds = 0;
 
-    for (final exercise in [...warmupExercises, ...mainExercises, ...cooldownExercises]) {
+    for (final exercise in [
+      ...warmupExercises,
+      ...mainExercises,
+      ...cooldownExercises,
+    ]) {
       final sets = exercise.getSetsForLevel(userLevel);
       final duration = exercise.getDurationForLevel(userLevel);
       final rest = exercise.restPeriod;

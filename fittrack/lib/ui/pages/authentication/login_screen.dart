@@ -14,11 +14,12 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final GlobalKey<FormState> _formKey = GlobalKey();
   final FocusNode _focusNodePassword = FocusNode();
+
   final TextEditingController _controllerUsername = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
-  bool _obscurePassword = true;
 
-  // ✅ WEB COMPATIBLE: Use new repositories
+  bool _password = true;
+
   final _userRepository = UserRepository();
   final _settingsRepository = SettingsRepository();
 
@@ -104,7 +105,7 @@ class _LoginState extends State<Login> {
                 TextFormField(
                   controller: _controllerPassword,
                   focusNode: _focusNodePassword,
-                  obscureText: _obscurePassword,
+                  obscureText: _password,
                   keyboardType: TextInputType.visiblePassword,
                   decoration: InputDecoration(
                     hintText: "Enter your password",
@@ -121,11 +122,11 @@ class _LoginState extends State<Login> {
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
-                          _obscurePassword = !_obscurePassword;
+                          _password = !_password;
                         });
                       },
                       icon: Icon(
-                        _obscurePassword
+                        _password
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
                         color: Colors.grey[600],
@@ -159,7 +160,6 @@ class _LoginState extends State<Login> {
                         final username = _controllerUsername.text;
                         final password = _controllerPassword.text;
 
-                        // ✅ WEB COMPATIBLE: Use async/await
                         final user = await _userRepository.validateLogin(
                           username,
                           password,

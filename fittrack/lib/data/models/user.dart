@@ -18,7 +18,7 @@ class User {
     this.hasCompletedAssessment = false,
     DateTime? createdAt,
   }) : id = id ?? const Uuid().v4(),
-        createdAt = createdAt ?? DateTime.now();
+       createdAt = createdAt ?? DateTime.now();
 
   final String id;
   final String name;
@@ -65,10 +65,10 @@ class User {
       weight: (json['weight'] as num).toDouble(),
       height: (json['height'] as num).toDouble(),
       selectedPlan: Plan.values.firstWhere(
-            (p) => p.name == json['selectedPlan'],
+        (p) => p.name == json['selectedPlan'],
       ),
       selectedLevel: Level.values.firstWhere(
-            (l) => l.name == json['selectedLevel'],
+        (l) => l.name == json['selectedLevel'],
       ),
       selectedCategories: (json['selectedCategories'] as List)
           .map((c) => Categories.values.firstWhere((cat) => cat.name == c))
