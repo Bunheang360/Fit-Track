@@ -4,9 +4,8 @@ import '../datasources/database_helper.dart';
 import '../../core/constants/enums.dart';
 
 class ExerciseRepository {
-  final DatabaseHelper _db = DatabaseHelper();
+  final DatabaseHelper _db = DatabaseHelper.instance;
 
-  /// Get all exercises
   Future<List<Exercise>> getAllExercises() async {
     try {
       return await _db.getAllExercises();
@@ -15,7 +14,6 @@ class ExerciseRepository {
     }
   }
 
-  /// Get exercises filtered for user (matches plan and categories)
   Future<List<Exercise>> getExercisesForUser(User user) async {
     try {
       return await _db.getExercisesForUser(user);
@@ -24,7 +22,6 @@ class ExerciseRepository {
     }
   }
 
-  /// Get exercises by section type (warmup, main, cooldown)
   Future<List<Exercise>> getExercisesBySection(
     User user,
     SectionType section,
@@ -37,7 +34,6 @@ class ExerciseRepository {
     }
   }
 
-  /// Get exercises by body target
   Future<List<Exercise>> getExercisesByBodyTarget(
     User user,
     BodyTarget target,
@@ -50,7 +46,6 @@ class ExerciseRepository {
     }
   }
 
-  /// Get exercises by plan type
   Future<List<Exercise>> getExercisesByPlan(Plan plan) async {
     try {
       return await _db.getExercisesByPlan(plan);
@@ -59,7 +54,6 @@ class ExerciseRepository {
     }
   }
 
-  /// Get a structured workout for user (warmup + main + cooldown)
   Future<WorkoutPlan> getWorkoutPlanForUser(User user) async {
     try {
       final warmup = await getExercisesBySection(user, SectionType.warmUp);
@@ -81,9 +75,16 @@ class ExerciseRepository {
       );
     }
   }
+
+  Future<void> addExercise(Exercise exercise) async {
+    try {
+      await _db.insertExercise(exercise);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 
-/// Represents a complete workout plan with sections
 class WorkoutPlan {
   final List<Exercise> warmupExercises;
   final List<Exercise> mainExercises;
@@ -97,11 +98,9 @@ class WorkoutPlan {
     required this.userLevel,
   });
 
-  /// Get total number of exercises
   int get totalExercises =>
       warmupExercises.length + mainExercises.length + cooldownExercises.length;
 
-  /// Get estimated total duration in minutes
   int get estimatedDurationMinutes {
     int totalSeconds = 0;
 
@@ -127,6 +126,5 @@ class WorkoutPlan {
     return (totalSeconds / 60).ceil();
   }
 
-  /// Check if plan is empty
   bool get isEmpty => totalExercises == 0;
 }

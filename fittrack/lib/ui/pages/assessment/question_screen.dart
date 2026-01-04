@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/user.dart';
-import '../../../data/repositories/user_repositories.dart';
-import '../../../data/repositories/setting_repositories.dart';
+import '../../../data/repositories/user_repository.dart';
+import '../../../data/repositories/settings_repository.dart';
 import '../../../core/constants/enums.dart';
 import '../home/home_screen.dart';
 import '../../widgets/assessment/slider_question.dart';

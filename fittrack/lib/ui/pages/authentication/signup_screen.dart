@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../data/repositories/user_repositories.dart';
+import '../../../data/repositories/user_repository.dart';
 import '../assessment/assessment_screen.dart';
 
 class Signup extends StatefulWidget {

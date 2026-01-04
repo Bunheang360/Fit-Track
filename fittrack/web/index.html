@@ -18,7 +18,7 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="FitTrack - A personalized workout app">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -29,8 +29,16 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>fittrack</title>
+  <title>FitTrack</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Required for sqflite_common_ffi_web (SharedArrayBuffer support) -->
+  <script>
+    // Note: For SharedArrayBuffer to work, the server must send these headers:
+    // Cross-Origin-Opener-Policy: same-origin
+    // Cross-Origin-Embedder-Policy: require-corp
+    // Flutter's dev server handles this automatically in debug mode.
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

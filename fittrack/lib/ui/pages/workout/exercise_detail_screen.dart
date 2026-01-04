@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/exercise.dart';
 import '../../../data/models/exercise_session.dart';
-import '../../../data/repositories/session_repositories.dart';
+import '../../../data/repositories/session_repository.dart';
 import '../../../core/constants/enums.dart';
 import '../../widgets/common/back_button.dart';
 
