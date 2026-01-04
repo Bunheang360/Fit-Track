@@ -16,7 +16,6 @@ class BottomNavBar extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.orange,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),

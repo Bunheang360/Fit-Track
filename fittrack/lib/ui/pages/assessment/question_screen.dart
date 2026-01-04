@@ -156,17 +156,17 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
           'Assessment ${_currentPage + 1}/8',
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.grey[800], fontWeight: FontWeight.w600),
         ),
         leading: _currentPage > 0
             ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                icon: Icon(Icons.arrow_back, color: Colors.grey[800]),
                 onPressed: _previousPage,
               )
             : null,
