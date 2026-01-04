@@ -62,15 +62,17 @@ class _SliderQuestionState extends State<SliderQuestion> {
     return Padding(
       padding: const EdgeInsets.all(30.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          const SizedBox(height: 20),
           // Title
           Text(
             widget.title,
-            style: const TextStyle(
+            textAlign: TextAlign.center,
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: Colors.grey[800],
               height: 1.2,
             ),
           ),
@@ -79,39 +81,54 @@ class _SliderQuestionState extends State<SliderQuestion> {
 
           // Content
           Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Large value display
-                Text(
-                  _getDisplayValue(),
-                  style: const TextStyle(
-                    fontSize: 56,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Large value display
+                  Text(
+                    _getDisplayValue(),
+                    style: TextStyle(
+                      fontSize: 64,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange[800],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 40),
+                  const SizedBox(height: 50),
 
-                // Slider
-                Slider(
-                  value: _currentValue,
-                  min: widget.minValue,
-                  max: widget.maxValue,
-                  divisions: widget.divisions,
-                  activeColor: Colors.orange[800],
-                  inactiveColor: Colors.grey[700],
-                  label: _getDisplayValue(),
-                  onChanged: _onSliderChanged,
-                ),
-                const SizedBox(height: 20),
+                  // Improved Slider
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: Colors.orange[800],
+                      inactiveTrackColor: Colors.grey[300],
+                      trackHeight: 8.0,
+                      thumbColor: Colors.orange[800],
+                      thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 14.0,
+                        elevation: 4.0,
+                      ),
+                      overlayColor: Colors.orange.withOpacity(0.2),
+                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 28.0),
+                      tickMarkShape: const RoundSliderTickMarkShape(tickMarkRadius: 0),
+                    ),
+                    child: Slider(
+                      value: _currentValue,
+                      min: widget.minValue,
+                      max: widget.maxValue,
+                      divisions: widget.divisions,
+                      onChanged: _onSliderChanged,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
-                // Helper text
-                Text(
-                  'Slide to select',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[400]),
-                ),
-              ],
+                  // Helper text
+                  Text(
+                    'Slide to select',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                  ),
+                ],
+              ),
             ),
           ),
 

@@ -65,15 +65,17 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
     return Padding(
       padding: const EdgeInsets.all(30.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          const SizedBox(height: 20),
           // Title
           Text(
             widget.title,
-            style: const TextStyle(
+            textAlign: TextAlign.center,
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: Colors.grey[800],
               height: 1.2,
             ),
           ),
@@ -82,7 +84,7 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
             const SizedBox(height: 10),
             Text(
               widget.subtitle!,
-              style: TextStyle(fontSize: 16, color: Colors.grey[400]),
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
           ],
 
@@ -90,18 +92,20 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
 
           // Options
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: widget.options.map((option) {
-                  final isSelected = _selectedValue == option.value;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: widget.showDescription
-                        ? _buildCardOption(option, isSelected)
-                        : _buildSimpleOption(option, isSelected),
-                  );
-                }).toList(),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                    children: widget.options.map((option) {
+                    final isSelected = _selectedValue == option.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: widget.showDescription
+                          ? _buildCardOption(option, isSelected)
+                          : _buildSimpleOption(option, isSelected),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
           ),
@@ -144,12 +148,19 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.orange[800] : Colors.grey[850],
+          color: isSelected ? Colors.orange[800] : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? Colors.orange : Colors.grey[700]!,
+            color: isSelected ? Colors.orange[800]! : Colors.grey[300]!,
             width: 2,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -158,18 +169,22 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? Colors.white.withOpacity(0.2)
-                    : Colors.grey[800],
+                    : Colors.orange[50],
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(option.icon, color: Colors.white, size: 28),
+              child: Icon(
+                option.icon,
+                color: isSelected ? Colors.white : Colors.orange[800],
+                size: 28,
+              ),
             ),
             const SizedBox(width: 20),
             Text(
               option.label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: isSelected ? Colors.white : Colors.grey[800],
               ),
             ),
           ],
@@ -186,23 +201,34 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
         width: double.infinity,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.orange[800] : Colors.grey[850],
+          color: isSelected ? Colors.orange[800] : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? Colors.orange : Colors.grey[700]!,
+            color: isSelected ? Colors.orange[800]! : Colors.grey[300]!,
             width: 2,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           children: [
-            Icon(option.icon, color: Colors.white, size: 48),
+            Icon(
+              option.icon,
+              color: isSelected ? Colors.white : Colors.orange[800],
+              size: 48,
+            ),
             const SizedBox(height: 16),
             Text(
               option.label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: isSelected ? Colors.white : Colors.grey[800],
               ),
             ),
             if (option.description != null) ...[
@@ -210,7 +236,10 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
               Text(
                 option.description!,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey[300]),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isSelected ? Colors.white70 : Colors.grey[600],
+                ),
               ),
             ],
           ],

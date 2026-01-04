@@ -4,8 +4,17 @@ import '../data/datasources/database_helper.dart';
 import 'pages/authentication/login_screen.dart';
 import 'pages/home/home_screen.dart';
 
-/// Frame 1 - Start Screen (Splash Screen)
-/// Shows logo and app name, then navigates to Login or Home
+/// ============================================
+/// START SCREEN (Splash Screen)
+/// ============================================
+/// This is the first screen users see when opening the app.
+/// It shows the logo with a fade animation, then navigates to:
+/// - HomeScreen (if user is logged in)
+/// - LoginScreen (if user is not logged in)
+/// 
+/// User can tap anywhere to skip the intro animation.
+/// ============================================
+
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
 
@@ -15,61 +24,98 @@ class StartScreen extends StatefulWidget {
 
 class _StartScreenState extends State<StartScreen>
     with SingleTickerProviderStateMixin {
+  
+  // Animation controller manages the animation timing
   late AnimationController _animationController;
+  
+  // Fade animation: logo goes from invisible (0) to visible (1)
   late Animation<double> _fadeAnimation;
+  
+  // Scale animation: logo grows from 80% to 100% size
   late Animation<double> _scaleAnimation;
+  
+  // Flag to prevent navigating multiple times if user taps repeatedly
+  bool _isNavigating = false;
 
   @override
   void initState() {
     super.initState();
     _setupAnimations();
-    _initializeAndNavigate();
+    _startSplashTimer();
   }
 
+  /// Set up the fade and scale animations for the logo
   void _setupAnimations() {
+    // Create animation controller (1.5 seconds duration)
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
 
+    // Fade animation: 0.0 (invisible) to 1.0 (fully visible)
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+        curve: Curves.easeIn,
       ),
     );
 
+    // Scale animation: 0.8 (80% size) to 1.0 (full size)
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeOutBack),
+        curve: Curves.easeOutBack, // Gives a nice "bounce" effect
       ),
     );
 
+    // Start the animation
     _animationController.forward();
   }
 
-  Future<void> _initializeAndNavigate() async {
+  /// Wait for splash duration, then navigate to next screen
+  Future<void> _startSplashTimer() async {
     try {
-      // Initialize database
-      final db = DatabaseHelper.instance;
-      await db.database;
+      // Initialize the database while showing splash
+      await DatabaseHelper.instance.database;
 
-      // Wait for splash animation (minimum 2 seconds)
-      await Future.delayed(const Duration(seconds: 2));
+      // Wait 4 seconds for user to see the logo
+      await Future.delayed(const Duration(seconds: 4));
 
-      // Check login status
-      final settingsRepository = SettingsRepository();
-      final isLoggedIn = await settingsRepository.isLoggedIn();
+      // Navigate to the appropriate screen
+      _goToNextScreen();
+    } catch (e) {
+      // If something goes wrong, go to login screen
+      _goToLoginScreen();
+    }
+  }
+
+  /// Called when user taps the screen to skip intro
+  void _skipIntro() {
+    if (_isNavigating) return; // Already navigating, ignore tap
+    _goToNextScreen();
+  }
+
+  /// Navigate to Home or Login based on login status
+  Future<void> _goToNextScreen() async {
+    // Prevent multiple navigations
+    if (_isNavigating || !mounted) return;
+    _isNavigating = true;
+
+    try {
+      // Check if user is logged in
+      final settings = SettingsRepository();
+      final isLoggedIn = await settings.isLoggedIn();
 
       if (!mounted) return;
 
-      // Navigate to appropriate screen
+      // Choose which screen to show
+      final nextScreen = isLoggedIn ? const HomeScreen() : const Login();
+
+      // Navigate with a fade transition
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              isLoggedIn ? const HomeScreen() : const Login(),
+          pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
@@ -77,14 +123,18 @@ class _StartScreenState extends State<StartScreen>
         ),
       );
     } catch (e) {
-      // On error, go to login screen
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const Login()),
-        );
-      }
+      _goToLoginScreen();
     }
+  }
+
+  /// Go directly to login screen (used when errors occur)
+  void _goToLoginScreen() {
+    if (!mounted || _isNavigating) return;
+    _isNavigating = true;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const Login()),
+    );
   }
 
   @override
@@ -97,43 +147,32 @@ class _StartScreenState extends State<StartScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return FadeTransition(
-              opacity: _fadeAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Logo
-                    Image.asset(
-                      'assets/images/logo.png',
-                      height: 120,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.fitness_center,
-                        size: 120,
-                        color: Colors.orange[800],
-                      ),
+      // GestureDetector makes the whole screen tappable
+      body: GestureDetector(
+        onTap: _skipIntro,
+        behavior: HitTestBehavior.opaque, // Detect taps on empty areas too
+        child: Center(
+          child: AnimatedBuilder(
+            animation: _animationController,
+            builder: (context, child) {
+              return FadeTransition(
+                opacity: _fadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    height: 200,
+                    // Show fallback icon if image fails to load
+                    errorBuilder: (_, __, ___) => Icon(
+                      Icons.fitness_center,
+                      size: 200,
+                      color: Colors.orange[800],
                     ),
-                    const SizedBox(height: 16),
-                    // App Name
-                    Text(
-                      'FitTrack',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.orange[800],
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

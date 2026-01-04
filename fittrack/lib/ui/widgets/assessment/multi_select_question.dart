@@ -5,8 +5,13 @@ import 'package:flutter/material.dart';
 class MultiSelectOption {
   final String value;
   final String label;
+  final IconData? icon; // Optional icon for the option
 
-  const MultiSelectOption({required this.value, required this.label});
+  const MultiSelectOption({
+    required this.value,
+    required this.label,
+    this.icon,
+  });
 }
 
 /// Display style for multi-select questions
@@ -65,20 +70,72 @@ class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
     widget.onValuesChanged(_selectedValues);
   }
 
+  /// Get icon for category based on value name
+  IconData _getCategoryIcon(String value) {
+    switch (value) {
+      case 'strength':
+        return Icons.fitness_center;
+      case 'endurance':
+        return Icons.directions_run;
+      case 'flexibility':
+        return Icons.self_improvement;
+      case 'loseFat':
+        return Icons.local_fire_department;
+      case 'getFit':
+        return Icons.sports_gymnastics;
+      case 'getTaller':
+        return Icons.height;
+      case 'cardio':
+        return Icons.favorite;
+      case 'mobility':
+        return Icons.accessibility_new;
+      case 'balance':
+        return Icons.balance;
+      case 'recovery':
+        return Icons.spa;
+      default:
+        return Icons.star;
+    }
+  }
+
+  /// Get icon for day of week
+  IconData _getDayIcon(String value) {
+    switch (value) {
+      case 'monday':
+        return Icons.looks_one;
+      case 'tuesday':
+        return Icons.looks_two;
+      case 'wednesday':
+        return Icons.looks_3;
+      case 'thursday':
+        return Icons.looks_4;
+      case 'friday':
+        return Icons.looks_5;
+      case 'saturday':
+        return Icons.looks_6;
+      case 'sunday':
+        return Icons.weekend;
+      default:
+        return Icons.calendar_today;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(30.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          const SizedBox(height: 20),
           // Title
           Text(
             widget.title,
-            style: const TextStyle(
+            textAlign: TextAlign.center,
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: Colors.grey[800],
               height: 1.2,
             ),
           ),
@@ -87,7 +144,7 @@ class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
             const SizedBox(height: 10),
             Text(
               widget.subtitle!,
-              style: TextStyle(fontSize: 16, color: Colors.grey[400]),
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
           ],
 
@@ -95,10 +152,12 @@ class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
 
           // Options content
           Expanded(
-            child: SingleChildScrollView(
-              child: widget.style == MultiSelectStyle.chips
-                  ? _buildChipsLayout()
-                  : _buildGridLayout(),
+            child: Center(
+              child: SingleChildScrollView(
+                child: widget.style == MultiSelectStyle.chips
+                    ? _buildChipsLayout()
+                    : _buildGridLayout(),
+              ),
             ),
           ),
 
@@ -109,7 +168,7 @@ class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
               child: Center(
                 child: Text(
                   '${_selectedValues.length} selected',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[400]),
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
               ),
             ),
@@ -144,69 +203,117 @@ class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
     );
   }
 
-  /// Chips layout for categories
+  /// Chips layout for categories - now with icons
   Widget _buildChipsLayout() {
     return Wrap(
       spacing: 12,
       runSpacing: 12,
+      alignment: WrapAlignment.center,
       children: widget.options.map((option) {
         final isSelected = _selectedValues.contains(option.value);
-        return ChoiceChip(
-          label: Text(
-            option.label,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.grey[300],
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        final icon = option.icon ?? _getCategoryIcon(option.value);
+        
+        return GestureDetector(
+          onTap: () => _toggleSelection(option.value),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.orange[800] : Colors.white,
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(
+                color: isSelected ? Colors.orange[800]! : Colors.grey[300]!,
+                width: 2,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: Colors.orange.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 20,
+                  color: isSelected ? Colors.white : Colors.orange[800],
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  option.label,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.grey[700],
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
           ),
-          selected: isSelected,
-          selectedColor: Colors.orange[800],
-          backgroundColor: Colors.grey[850],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(
-              color: isSelected ? Colors.orange : Colors.grey[700]!,
-              width: 1.5,
-            ),
-          ),
-          onSelected: (_) => _toggleSelection(option.value),
         );
       }).toList(),
     );
   }
 
-  /// Grid layout for schedule days
+  /// Grid layout for schedule days - improved with icons
   Widget _buildGridLayout() {
     return Wrap(
-      spacing: 10,
-      runSpacing: 10,
+      spacing: 12,
+      runSpacing: 12,
       alignment: WrapAlignment.center,
       children: widget.options.map((option) {
         final isSelected = _selectedValues.contains(option.value);
+        final icon = option.icon ?? _getDayIcon(option.value);
+        
         return GestureDetector(
           onTap: () => _toggleSelection(option.value),
-          child: Container(
-            width: 100,
-            height: 100,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 95,
+            height: 95,
             decoration: BoxDecoration(
-              color: isSelected ? Colors.orange[800] : Colors.grey[850],
+              color: isSelected ? Colors.orange[800] : Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected ? Colors.orange : Colors.grey[700]!,
+                color: isSelected ? Colors.orange[800]! : Colors.grey[300]!,
                 width: 2,
               ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: Colors.orange.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (isSelected)
-                  const Icon(Icons.check_circle, color: Colors.white, size: 24),
+                // Icon changes based on selection
+                Icon(
+                  isSelected ? Icons.check_circle : icon,
+                  color: isSelected ? Colors.white : Colors.orange[800],
+                  size: 28,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   option.label,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.grey[700],
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

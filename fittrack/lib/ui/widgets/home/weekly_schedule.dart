@@ -30,38 +30,42 @@ class WeeklySchedule extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(7, (index) {
               final dayNumber = index + 1;
               final dayEnum = DayOfWeek.values[index];
               final isSelected = selectedDays.contains(dayEnum);
               final isToday = today == dayNumber;
+              final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-              return Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: isToday
-                      ? Colors.orange
-                      : isSelected
-                      ? Colors.orange[100]
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isSelected ? Colors.orange : Colors.grey[300]!,
+              return Expanded(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: isToday
+                        ? Colors.orange
+                        : isSelected
+                        ? Colors.orange[100]
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isSelected ? Colors.orange : Colors.grey[300]!,
+                      width: 1.5,
+                    ),
                   ),
-                ),
-                child: Center(
-                  child: Text(
-                    '$dayNumber',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: isToday
-                          ? Colors.white
-                          : isSelected
-                          ? Colors.orange[800]
-                          : Colors.grey[500],
+                  child: Center(
+                    child: Text(
+                      dayNames[index],
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isToday
+                            ? Colors.white
+                            : isSelected
+                            ? Colors.orange[800]
+                            : Colors.grey[500],
+                      ),
                     ),
                   ),
                 ),
