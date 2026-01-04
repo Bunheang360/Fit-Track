@@ -1,20 +1,31 @@
+import 'package:sqflite/sqflite.dart';
 import '../models/exercise_session.dart';
 import '../datasources/database_helper.dart';
 
 class SessionRepository {
-  final DatabaseHelper _db = DatabaseHelper.instance;
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+
+  Future<Database> get _db async => await _dbHelper.database;
 
   Future<void> saveSession(ExerciseSession session) async {
-    try {
-      await _db.insertSession(session);
-    } catch (e) {
-      rethrow;
-    }
+    final db = await _db;
+    await db.insert(
+      'exercise_sessions',
+      _dbHelper.sessionToMap(session),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<List<ExerciseSession>> getSessionsForUser(String userId) async {
     try {
-      return await _db.getSessionsForUser(userId);
+      final db = await _db;
+      final maps = await db.query(
+        'exercise_sessions',
+        where: 'userId = ?',
+        whereArgs: [userId],
+        orderBy: 'date DESC',
+      );
+      return maps.map((m) => _dbHelper.sessionFromMap(m)).toList();
     } catch (e) {
       return [];
     }
@@ -26,8 +37,15 @@ class SessionRepository {
     DateTime? endDate,
   }) async {
     try {
+      final db = await _db;
       final end = endDate ?? DateTime.now();
-      return await _db.getSessionsInRange(userId, startDate, end);
+      final maps = await db.query(
+        'exercise_sessions',
+        where: 'userId = ? AND date >= ? AND date <= ?',
+        whereArgs: [userId, startDate.toIso8601String(), end.toIso8601String()],
+        orderBy: 'date DESC',
+      );
+      return maps.map((m) => _dbHelper.sessionFromMap(m)).toList();
     } catch (e) {
       return [];
     }
@@ -38,27 +56,35 @@ class SessionRepository {
     String exerciseId,
   ) async {
     try {
-      final allSessions = await getSessionsForUser(userId);
-      return allSessions.where((s) => s.exerciseId == exerciseId).toList();
+      final db = await _db;
+      final maps = await db.query(
+        'exercise_sessions',
+        where: 'userId = ? AND exerciseId = ?',
+        whereArgs: [userId, exerciseId],
+        orderBy: 'date DESC',
+      );
+      return maps.map((m) => _dbHelper.sessionFromMap(m)).toList();
     } catch (e) {
       return [];
     }
   }
 
   Future<void> deleteSession(String sessionId) async {
-    try {
-      await _db.deleteSession(sessionId);
-    } catch (e) {
-      rethrow;
-    }
+    final db = await _db;
+    await db.delete(
+      'exercise_sessions',
+      where: 'id = ?',
+      whereArgs: [sessionId],
+    );
   }
 
   Future<void> clearUserSessions(String userId) async {
-    try {
-      await _db.deleteUserSessions(userId);
-    } catch (e) {
-      rethrow;
-    }
+    final db = await _db;
+    await db.delete(
+      'exercise_sessions',
+      where: 'userId = ?',
+      whereArgs: [userId],
+    );
   }
 
   Future<bool> hasSessions(String userId) async {

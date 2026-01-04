@@ -7,7 +7,6 @@ class Exercise {
     required this.name,
     required this.description,
     required this.imageUrl,
-    this.videoUrl,
     required this.categories,
     required this.plan,
     required this.bodyTarget,
@@ -16,8 +15,6 @@ class Exercise {
     required this.baseReps,
     required this.baseDuration,
     required this.restPeriod,
-    required this.targetMuscles,
-    required this.equipment,
     required this.instructions,
   }) : id = id ?? const Uuid().v4();
 
@@ -25,17 +22,14 @@ class Exercise {
   final String name;
   final String description;
   final String imageUrl;
-  final String? videoUrl;
   final List<Categories> categories;
   final Plan plan;
   final BodyTarget bodyTarget;
-  final SectionType sectionType;
+  final WorkoutType sectionType;
   final int baseSets;
   final int baseReps;
   final int baseDuration;
   final int restPeriod;
-  final List<String> targetMuscles;
-  final String equipment;
   final List<String> instructions;
 
   /// Get adjusted sets for user level
@@ -69,7 +63,6 @@ class Exercise {
       'name': name,
       'description': description,
       'imageUrl': imageUrl,
-      'videoUrl': videoUrl,
       'categories': categories.map((c) => c.name).toList(),
       'plan': plan.name,
       'bodyTarget': bodyTarget.name,
@@ -78,8 +71,6 @@ class Exercise {
       'baseReps': baseReps,
       'baseDuration': baseDuration,
       'restPeriod': restPeriod,
-      'targetMuscles': targetMuscles,
-      'equipment': equipment,
       'instructions': instructions,
     };
   }
@@ -90,7 +81,6 @@ class Exercise {
       name: json['name'] as String,
       description: json['description'] as String,
       imageUrl: json['imageUrl'] as String,
-      videoUrl: json['videoUrl'] as String?,
       categories: (json['categories'] as List)
           .map((c) => Categories.values.firstWhere((cat) => cat.name == c))
           .toList(),
@@ -98,15 +88,13 @@ class Exercise {
       bodyTarget: BodyTarget.values.firstWhere(
         (b) => b.name == json['bodyTarget'],
       ),
-      sectionType: SectionType.values.firstWhere(
+      sectionType: WorkoutType.values.firstWhere(
         (s) => s.name == json['sectionType'],
       ),
       baseSets: json['baseSets'] as int,
       baseReps: json['baseReps'] as int,
       baseDuration: json['baseDuration'] as int,
       restPeriod: json['restPeriod'] as int,
-      targetMuscles: List<String>.from(json['targetMuscles'] as List),
-      equipment: json['equipment'] as String,
       instructions: List<String>.from(json['instructions'] as List),
     );
   }

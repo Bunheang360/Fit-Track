@@ -3,9 +3,6 @@ import '../../../data/models/exercise_session.dart';
 import '../../../data/repositories/session_repository.dart';
 import '../../../core/constants/enums.dart';
 
-/// Time period filter for analytics
-
-/// Analytics Screen (Frame 22)
 /// Shows workout statistics with Days/Weeks/Months filter
 class AnalyticsScreen extends StatefulWidget {
   final String userId;
