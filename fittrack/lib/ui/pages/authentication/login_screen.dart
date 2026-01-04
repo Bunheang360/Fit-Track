@@ -1,5 +1,5 @@
-import 'package:fittrack/data/repositories/setting_repositories.dart';
-import 'package:fittrack/data/repositories/user_repositories.dart';
+import 'package:fittrack/data/repositories/settings_repository.dart';
+import 'package:fittrack/data/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
 import 'signup_screen.dart';
 import '../home/home_screen.dart';

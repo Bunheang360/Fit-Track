@@ -2,9 +2,8 @@ import '../models/user.dart';
 import '../datasources/database_helper.dart';
 
 class UserRepository {
-  final DatabaseHelper _db = DatabaseHelper();
+  final DatabaseHelper _db = DatabaseHelper.instance;
 
-  /// Get all users
   Future<List<User>> getAllUsers() async {
     try {
       return await _db.getAllUsers();
@@ -13,7 +12,6 @@ class UserRepository {
     }
   }
 
-  /// Save or update a user
   Future<void> saveUser(User user) async {
     try {
       _validateUser(user);
@@ -30,7 +28,6 @@ class UserRepository {
     }
   }
 
-  /// Get user by ID
   Future<User?> getUserById(String userId) async {
     try {
       return await _db.getUserById(userId);
@@ -39,7 +36,6 @@ class UserRepository {
     }
   }
 
-  /// Get user by username
   Future<User?> getUserByUsername(String username) async {
     try {
       if (username.trim().isEmpty) {
@@ -51,21 +47,18 @@ class UserRepository {
     }
   }
 
-  /// Check if username exists
   Future<bool> usernameExists(String username) async {
     if (username.trim().isEmpty) return false;
     final user = await getUserByUsername(username);
     return user != null;
   }
 
-  /// Check if email exists
   Future<bool> emailExists(String email) async {
     if (email.trim().isEmpty) return false;
     final user = await _db.getUserByEmail(email);
     return user != null;
   }
 
-  /// Validate login and return user
   Future<User?> validateLogin(String username, String password) async {
     try {
       final user = await getUserByUsername(username);
@@ -84,7 +77,6 @@ class UserRepository {
     }
   }
 
-  /// Delete user
   Future<void> deleteUser(String userId) async {
     try {
       await _db.deleteUser(userId);
@@ -93,7 +85,6 @@ class UserRepository {
     }
   }
 
-  /// Clear all users
   Future<void> clearAllUsers() async {
     try {
       await _db.deleteAllUsers();
@@ -102,7 +93,6 @@ class UserRepository {
     }
   }
 
-  /// Validate user data
   void _validateUser(User user) {
     if (user.name.trim().isEmpty) {
       throw Exception('Username cannot be empty');

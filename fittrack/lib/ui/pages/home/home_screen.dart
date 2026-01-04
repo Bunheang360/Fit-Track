@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/user.dart';
 import '../../../data/models/exercise.dart';
-import '../../../data/repositories/user_repositories.dart';
-import '../../../data/repositories/exercise_repositories.dart';
-import '../../../data/repositories/setting_repositories.dart';
+import '../../../data/repositories/user_repository.dart';
+import '../../../data/repositories/exercise_repository.dart';
+import '../../../data/repositories/settings_repository.dart';
 import '../../../core/constants/enums.dart';
 import '../authentication/login_screen.dart';
 import '../workout/workout_list_screen.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../data/repositories/setting_repositories.dart';
+import '../data/repositories/settings_repository.dart';
 import '../data/datasources/database_helper.dart';
 import 'pages/authentication/login_screen.dart';
 import 'pages/home/home_screen.dart';
@@ -52,7 +52,7 @@ class _StartScreenState extends State<StartScreen>
   Future<void> _initializeAndNavigate() async {
     try {
       // Initialize database
-      final db = DatabaseHelper();
+      final db = DatabaseHelper.instance;
       await db.database;
 
       // Wait for splash animation (minimum 2 seconds)
