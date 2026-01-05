@@ -13,6 +13,7 @@ import '../analytics/analytics_screen.dart';
 import '../settings/settings_screen.dart';
 import '../settings/edit_plan_screen.dart';
 import '../settings/change_password_screen.dart';
+import '../settings/edit_profile_screen.dart';
 import '../../widgets/navigation/bottom_nav_bar.dart';
 import '../../widgets/home/progress_circle.dart';
 import '../../widgets/home/workout_section_card.dart';
@@ -172,8 +173,25 @@ class _HomeScreenState extends State<HomeScreen> {
           onLogout: _logout,
           onEditPlan: _navigateToEditPlan,
           onChangePassword: _navigateToChangePassword,
+          onEditProfile: _navigateToEditProfile,
         );
     }
+  }
+
+  void _navigateToEditProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfileScreen(
+          user: _currentUser!,
+          onSave: (updatedUser) {
+            setState(() {
+              _currentUser = updatedUser;
+            });
+          },
+        ),
+      ),
+    );
   }
 
   void _navigateToEditPlan() {
@@ -226,18 +244,21 @@ class _HomeScreenState extends State<HomeScreen> {
     final warmupCount = plan?.warmupExercises.length ?? 0;
     final mainCount = plan?.mainExercises.length ?? 0;
     final isWorkoutDay = _isTodayWorkoutDay();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
+    final padding = isSmall ? 16.0 : 20.0;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(padding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(),
-          const SizedBox(height: 20),
+          SizedBox(height: isSmall ? 16 : 20),
           // Greeting
           RichText(
             text: TextSpan(
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: isSmall ? 20 : 24, fontWeight: FontWeight.bold),
               children: [
                 const TextSpan(
                   text: 'Hello ',
@@ -250,20 +271,20 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: isSmall ? 6 : 8),
           Text(
             '${user.selectedPlan.displayName} Workout Plan',
-            style: const TextStyle(
-              fontSize: 16,
+            style: TextStyle(
+              fontSize: isSmall ? 14 : 16,
               fontWeight: FontWeight.w500,
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: isSmall ? 20 : 24),
           WeeklySchedule(selectedDays: user.selectedDays),
-          const SizedBox(height: 16),
+          SizedBox(height: isSmall ? 12 : 16),
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(isSmall ? 10 : 12),
             decoration: BoxDecoration(
               color: isWorkoutDay ? Colors.grey[100] : Colors.blue[50],
               borderRadius: BorderRadius.circular(8),
@@ -273,15 +294,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? "Hello friends! Let's get you going with this workout today"
                   : "Today is your rest day! Take it easy and recover.",
               style: TextStyle(
-                fontSize: 14,
+                fontSize: isSmall ? 12 : 14,
                 color: isWorkoutDay ? Colors.black87 : Colors.blue[800],
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: isSmall ? 20 : 24),
           if (isWorkoutDay) ...[
             _buildTodaysProgressSection(warmupCount, mainCount),
-            const SizedBox(height: 24),
+            SizedBox(height: isSmall ? 20 : 24),
             WorkoutSectionCard(
               title: 'Warm Up',
               subtitle: 'Stretching & light cardio',
@@ -291,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 plan?.warmupExercises ?? [],
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: isSmall ? 10 : 12),
             WorkoutSectionCard(
               title: 'Main Workout',
               subtitle: 'Full Body workout',

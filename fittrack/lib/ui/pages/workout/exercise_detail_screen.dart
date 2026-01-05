@@ -72,6 +72,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     final sets = widget.exercise.getSetsForLevel(widget.userLevel);
     final reps = widget.exercise.getRepsForLevel(widget.userLevel);
     final duration = widget.exercise.getDurationForLevel(widget.userLevel);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -82,7 +84,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         leadingWidth: 90,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(isSmall ? 16 : 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -91,17 +93,18 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               child: Text(
                 widget.exercise.name,
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: isSmall ? 24 : 28,
                   fontWeight: FontWeight.bold,
                   color: Colors.orange[800],
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: isSmall ? 16 : 24),
 
             // Exercise image placeholder
             Container(
-              height: 200,
+              height: screenWidth * 0.5,
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.grey[100],

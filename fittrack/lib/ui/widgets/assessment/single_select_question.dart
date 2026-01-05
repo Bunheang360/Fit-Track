@@ -62,18 +62,22 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
+    final padding = isSmall ? 20.0 : 30.0;
+
     return Padding(
-      padding: const EdgeInsets.all(30.0),
+      padding: EdgeInsets.all(padding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(height: 20),
+          SizedBox(height: isSmall ? 10 : 20),
           // Title
           Text(
             widget.title,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 28,
+              fontSize: isSmall ? 22 : 28,
               fontWeight: FontWeight.bold,
               color: Colors.grey[800],
               height: 1.2,
@@ -81,14 +85,14 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
           ),
 
           if (widget.subtitle != null) ...[
-            const SizedBox(height: 10),
+            SizedBox(height: isSmall ? 6 : 10),
             Text(
               widget.subtitle!,
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              style: TextStyle(fontSize: isSmall ? 14 : 16, color: Colors.grey[600]),
             ),
           ],
 
-          const SizedBox(height: 40),
+          SizedBox(height: isSmall ? 30 : 40),
 
           // Options
           Expanded(
@@ -99,7 +103,7 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
                     children: widget.options.map((option) {
                     final isSelected = _selectedValue == option.value;
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: EdgeInsets.only(bottom: isSmall ? 12 : 16),
                       child: widget.showDescription
                           ? _buildCardOption(option, isSelected)
                           : _buildSimpleOption(option, isSelected),
@@ -110,7 +114,7 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
             ),
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: isSmall ? 15 : 20),
 
           // Continue button
           SizedBox(
@@ -119,7 +123,7 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange[800],
                 foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(55),
+                minimumSize: Size.fromHeight(isSmall ? 48 : 55),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

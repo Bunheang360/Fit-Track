@@ -13,25 +13,30 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
+
     return Container(
       decoration: const BoxDecoration(
         color: Colors.orange,
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(NavTab.home, Icons.home, 'Home'),
-            _buildNavItem(NavTab.analytics, Icons.analytics, 'Analytic'),
-            _buildNavItem(NavTab.settings, Icons.settings, 'Setting'),
-          ],
+      child: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: isSmall ? 6 : 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(NavTab.home, Icons.home, 'Home', isSmall),
+              _buildNavItem(NavTab.analytics, Icons.analytics, 'Analytic', isSmall),
+              _buildNavItem(NavTab.settings, Icons.settings, 'Setting', isSmall),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildNavItem(NavTab tab, IconData icon, String label) {
+  Widget _buildNavItem(NavTab tab, IconData icon, String label, bool isSmall) {
     final isSelected = selectedTab == tab;
     return GestureDetector(
       onTap: () => onTabSelected(tab),
@@ -41,14 +46,14 @@ class BottomNavBar extends StatelessWidget {
           Icon(
             icon,
             color: isSelected ? Colors.white : Colors.white70,
-            size: isSelected ? 28 : 24,
+            size: isSelected ? (isSmall ? 24 : 28) : (isSmall ? 20 : 24),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: isSmall ? 2 : 4),
           Text(
             label,
             style: TextStyle(
               color: isSelected ? Colors.white : Colors.white70,
-              fontSize: 12,
+              fontSize: isSmall ? 10 : 12,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
           ),

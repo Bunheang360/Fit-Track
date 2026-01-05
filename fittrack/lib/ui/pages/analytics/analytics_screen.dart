@@ -138,24 +138,28 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
+    final padding = isSmall ? 16.0 : 20.0;
+
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(padding),
       child: Column(
         children: [
           // Title
-          const Text(
+          Text(
             'Analytic',
             style: TextStyle(
-              fontSize: 24,
+              fontSize: isSmall ? 20 : 24,
               fontWeight: FontWeight.bold,
               color: Colors.orange,
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: isSmall ? 20 : 24),
 
           // Period Selector (Days/Weeks/Months)
           _buildPeriodSelector(),
-          const SizedBox(height: 24),
+          SizedBox(height: isSmall ? 20 : 24),
 
           // Chart
           Expanded(

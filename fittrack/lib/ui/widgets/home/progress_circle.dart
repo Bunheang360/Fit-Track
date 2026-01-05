@@ -19,9 +19,12 @@ class ProgressCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = total > 0 ? completed / total : 0.0;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final circleSize = (screenWidth * 0.18).clamp(60.0, 90.0);
+    final fontSize = screenWidth < 360 ? 14.0 : 16.0;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(screenWidth < 360 ? 12 : 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -30,8 +33,8 @@ class ProgressCircle extends StatelessWidget {
       child: Column(
         children: [
           SizedBox(
-            width: 80,
-            height: 80,
+            width: circleSize,
+            height: circleSize,
             child: Stack(
               fit: StackFit.expand,
               children: [
@@ -44,8 +47,8 @@ class ProgressCircle extends StatelessWidget {
                 Center(
                   child: Text(
                     '$completed/$total',
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: fontSize,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -56,12 +59,13 @@ class ProgressCircle extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             title,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: screenWidth < 360 ? 12 : 14, fontWeight: FontWeight.w600),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           Text(
             '$remainingMin min remaining',
-            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+            style: TextStyle(fontSize: screenWidth < 360 ? 10 : 12, color: Colors.grey[500]),
           ),
         ],
       ),

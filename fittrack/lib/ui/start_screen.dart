@@ -145,6 +145,9 @@ class _StartScreenState extends State<StartScreen>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final logoSize = (screenWidth * 0.45).clamp(120.0, 220.0);
+
     return Scaffold(
       backgroundColor: Colors.white,
       // GestureDetector makes the whole screen tappable
@@ -161,11 +164,11 @@ class _StartScreenState extends State<StartScreen>
                   scale: _scaleAnimation,
                   child: Image.asset(
                     'assets/images/logo.png',
-                    height: 200,
+                    height: logoSize,
                     // Show fallback icon if image fails to load
                     errorBuilder: (_, __, ___) => Icon(
                       Icons.fitness_center,
-                      size: 200,
+                      size: logoSize,
                       color: Colors.orange[800],
                     ),
                   ),
