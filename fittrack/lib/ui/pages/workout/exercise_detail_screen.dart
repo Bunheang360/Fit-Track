@@ -165,15 +165,40 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   // BUILD EXERCISE IMAGE
   // ==========================================
   Widget _buildExerciseImage() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmall = screenWidth < 360;
+    final isLandscape = screenWidth > screenHeight;
+    
+    // Responsive height based on screen size
+    final imageHeight = isLandscape
+        ? screenHeight * 0.35
+        : isSmall
+            ? screenHeight * 0.2
+            : screenHeight * 0.25;
+
     return Container(
-      height: 200,
+      height: imageHeight.clamp(150.0, 300.0),
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(isSmall ? 12 : 16),
       ),
-      child: Center(
-        child: Icon(Icons.fitness_center, size: 80, color: Colors.orange[300]),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(isSmall ? 12 : 16),
+        child: Image.asset(
+          widget.exercise.imageUrl,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            return Center(
+              child: Icon(
+                Icons.fitness_center,
+                size: isSmall ? 60 : 80,
+                color: Colors.orange[300],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
