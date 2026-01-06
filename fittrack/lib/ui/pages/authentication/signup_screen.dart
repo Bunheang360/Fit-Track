@@ -2,6 +2,16 @@ import 'package:flutter/material.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../assessment/assessment_screen.dart';
 
+/// ============================================
+/// SIGNUP SCREEN
+/// ============================================
+/// This screen allows new users to register with:
+/// 1. Username
+/// 2. Email
+/// 3. Password
+/// 4. Confirm Password
+/// ============================================
+
 class Signup extends StatefulWidget {
   const Signup({super.key});
 
@@ -10,20 +20,28 @@ class Signup extends StatefulWidget {
 }
 
 class _SignupState extends State<Signup> {
-  final GlobalKey<FormState> _formKey = GlobalKey();
+  // ==========================================
+  // FORM CONTROLLERS
+  // ==========================================
+  final _formKey = GlobalKey<FormState>();
+  final _focusNodeEmail = FocusNode();
+  final _focusNodePassword = FocusNode();
+  final _focusNodeConfirmPassword = FocusNode();
 
-  final FocusNode _focusNodeEmail = FocusNode();
-  final FocusNode _focusNodePassword = FocusNode();
-  final FocusNode _focusNodeConfirmPassword = FocusNode();
+  final _controllerUsername = TextEditingController();
+  final _controllerEmail = TextEditingController();
+  final _controllerPassword = TextEditingController();
+  final _controllerConfirmPassword = TextEditingController();
 
-  final TextEditingController _controllerUsername = TextEditingController();
-  final TextEditingController _controllerEmail = TextEditingController();
-  final TextEditingController _controllerPassword = TextEditingController();
-  final TextEditingController _controllerConfirmPassword =
-      TextEditingController();
+  // ==========================================
+  // STATE VARIABLES
+  // ==========================================
+  bool _hidePassword = true; // Toggle password visibility
 
+  // ==========================================
+  // REPOSITORIES (for database access)
+  // ==========================================
   final _userRepository = UserRepository();
-  bool _password = true;
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +163,7 @@ class _SignupState extends State<Signup> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _controllerPassword,
-                  obscureText: _password,
+                  obscureText: _hidePassword,
                   focusNode: _focusNodePassword,
                   keyboardType: TextInputType.visiblePassword,
                   decoration: InputDecoration(
@@ -161,13 +179,9 @@ class _SignupState extends State<Signup> {
                       vertical: 16,
                     ),
                     suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _password = !_password;
-                        });
-                      },
+                      onPressed: _togglePasswordVisibility,
                       icon: Icon(
-                        _password
+                        _hidePassword
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
                         color: Colors.grey[600],
@@ -199,7 +213,7 @@ class _SignupState extends State<Signup> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _controllerConfirmPassword,
-                  obscureText: _password,
+                  obscureText: _hidePassword,
                   focusNode: _focusNodeConfirmPassword,
                   keyboardType: TextInputType.visiblePassword,
                   decoration: InputDecoration(
@@ -215,13 +229,9 @@ class _SignupState extends State<Signup> {
                       vertical: 16,
                     ),
                     suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _password = !_password;
-                        });
-                      },
+                      onPressed: _togglePasswordVisibility,
                       icon: Icon(
-                        _password
+                        _hidePassword
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
                         color: Colors.grey[600],
@@ -252,48 +262,7 @@ class _SignupState extends State<Signup> {
                       ),
                       elevation: 0,
                     ),
-                    onPressed: () async {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        final username = _controllerUsername.text;
-
-                        // Check if username already exists
-                        final exists = await _userRepository.usernameExists(
-                          username,
-                        );
-                        if (exists) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text(
-                                  'Username is already registered',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                backgroundColor: Colors.red,
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            );
-                          }
-                          return;
-                        }
-
-                        // Navigate to assessment intro screen (Frame 4)
-                        if (mounted) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AssessmentIntroScreen(
-                                username: _controllerUsername.text,
-                                email: _controllerEmail.text,
-                                password: _controllerPassword.text,
-                              ),
-                            ),
-                          );
-                        }
-                      }
-                    },
+                    onPressed: _handleRegister,
                     child: const Text(
                       "Register",
                       style: TextStyle(
@@ -336,6 +305,76 @@ class _SignupState extends State<Signup> {
     );
   }
 
+  // ==========================================
+  // REGISTER LOGIC
+  // ==========================================
+  Future<void> _handleRegister() async {
+    // Step 1: Validate form fields
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+
+    // Step 2: Check if username already exists
+    final username = _controllerUsername.text;
+    final usernameExists = await _userRepository.usernameExists(username);
+
+    if (usernameExists) {
+      _showError('Username is already registered');
+      return;
+    }
+
+    // Step 3: Go to assessment screen
+    _goToAssessment();
+  }
+
+  // ==========================================
+  // NAVIGATE TO ASSESSMENT
+  // ==========================================
+  void _goToAssessment() {
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AssessmentIntroScreen(
+            username: _controllerUsername.text,
+            email: _controllerEmail.text,
+            password: _controllerPassword.text,
+          ),
+        ),
+      );
+    }
+  }
+
+  // ==========================================
+  // SHOW ERROR MESSAGE
+  // ==========================================
+  void _showError(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message, style: const TextStyle(color: Colors.white)),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
+
+  // ==========================================
+  // TOGGLE PASSWORD VISIBILITY
+  // ==========================================
+  void _togglePasswordVisibility() {
+    setState(() {
+      _hidePassword = !_hidePassword;
+    });
+  }
+
+  // ==========================================
+  // CLEANUP
+  // ==========================================
   @override
   void dispose() {
     _focusNodeEmail.dispose();

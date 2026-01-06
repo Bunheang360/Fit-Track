@@ -4,6 +4,14 @@ import 'package:flutter/material.dart';
 import 'signup_screen.dart';
 import '../home/home_screen.dart';
 
+/// ============================================
+/// LOGIN SCREEN
+/// ============================================
+/// This screen allows users to login with:
+/// 1. Username
+/// 2. Password
+/// ============================================
+
 class Login extends StatefulWidget {
   const Login({super.key});
 
@@ -12,14 +20,22 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  final GlobalKey<FormState> _formKey = GlobalKey();
-  final FocusNode _focusNodePassword = FocusNode();
+  // ==========================================
+  // FORM CONTROLLERS
+  // ==========================================
+  final _formKey = GlobalKey<FormState>();
+  final _focusNodePassword = FocusNode();
+  final _controllerUsername = TextEditingController();
+  final _controllerPassword = TextEditingController();
 
-  final TextEditingController _controllerUsername = TextEditingController();
-  final TextEditingController _controllerPassword = TextEditingController();
+  // ==========================================
+  // STATE VARIABLES
+  // ==========================================
+  bool _hidePassword = true; // Toggle password visibility
 
-  bool _password = true;
-
+  // ==========================================
+  // REPOSITORIES (for database access)
+  // ==========================================
   final _userRepository = UserRepository();
   final _settingsRepository = SettingsRepository();
 
@@ -105,7 +121,7 @@ class _LoginState extends State<Login> {
                 TextFormField(
                   controller: _controllerPassword,
                   focusNode: _focusNodePassword,
-                  obscureText: _password,
+                  obscureText: _hidePassword,
                   keyboardType: TextInputType.visiblePassword,
                   decoration: InputDecoration(
                     hintText: "Enter your password",
@@ -120,13 +136,9 @@ class _LoginState extends State<Login> {
                       vertical: 16,
                     ),
                     suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _password = !_password;
-                        });
-                      },
+                      onPressed: _togglePasswordVisibility,
                       icon: Icon(
-                        _password
+                        _hidePassword
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
                         color: Colors.grey[600],
@@ -155,52 +167,7 @@ class _LoginState extends State<Login> {
                       ),
                       elevation: 0,
                     ),
-                    onPressed: () async {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        final username = _controllerUsername.text;
-                        final password = _controllerPassword.text;
-
-                        final user = await _userRepository.validateLogin(
-                          username,
-                          password,
-                        );
-
-                        if (user != null) {
-                          // Save login state
-                          await _settingsRepository.setLoggedIn(
-                            user.id,
-                            user.name,
-                          );
-
-                          // Navigate to Home
-                          if (mounted) {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const HomeScreen(),
-                              ),
-                            );
-                          }
-                        } else {
-                          // Show error
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text(
-                                  'Invalid username or password',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                backgroundColor: Colors.red,
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            );
-                          }
-                        }
-                      }
-                    },
+                    onPressed: _handleLogin,
                     child: const Text(
                       "Login",
                       style: TextStyle(
@@ -222,15 +189,7 @@ class _LoginState extends State<Login> {
                         style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          _formKey.currentState?.reset();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const Signup(),
-                            ),
-                          );
-                        },
+                        onTap: _goToSignup,
                         child: Text(
                           "Register",
                           style: TextStyle(
@@ -251,6 +210,90 @@ class _LoginState extends State<Login> {
     );
   }
 
+  // ==========================================
+  // LOGIN LOGIC
+  // ==========================================
+  Future<void> _handleLogin() async {
+    // Step 1: Validate form fields
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+
+    // Step 2: Get username and password from text fields
+    final username = _controllerUsername.text;
+    final password = _controllerPassword.text;
+
+    // Step 3: Check if user exists in database
+    final user = await _userRepository.validateLogin(username, password);
+
+    // Step 4: Handle login result
+    if (user != null) {
+      _onLoginSuccess(user);
+    } else {
+      _onLoginFailed();
+    }
+  }
+
+  // ==========================================
+  // LOGIN SUCCESS - Save session and go to home
+  // ==========================================
+  Future<void> _onLoginSuccess(user) async {
+    // Save login state to remember user
+    await _settingsRepository.setLoggedIn(user.id, user.name);
+
+    // Navigate to Home screen
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    }
+  }
+
+  // ==========================================
+  // LOGIN FAILED - Show error message
+  // ==========================================
+  void _onLoginFailed() {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Invalid username or password',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
+
+  // ==========================================
+  // TOGGLE PASSWORD VISIBILITY
+  // ==========================================
+  void _togglePasswordVisibility() {
+    setState(() {
+      _hidePassword = !_hidePassword;
+    });
+  }
+
+  // ==========================================
+  // NAVIGATE TO SIGNUP
+  // ==========================================
+  void _goToSignup() {
+    _formKey.currentState?.reset();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const Signup()),
+    );
+  }
+
+  // ==========================================
+  // CLEANUP
+  // ==========================================
   @override
   void dispose() {
     _focusNodePassword.dispose();

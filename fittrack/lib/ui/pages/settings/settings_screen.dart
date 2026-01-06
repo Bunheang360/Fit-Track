@@ -2,9 +2,18 @@ import 'package:flutter/material.dart';
 import '../../../data/models/user.dart';
 import '../../../core/constants/enums.dart';
 
-/// Settings Screen (Frame 23)
-/// Shows Profile, Edit Plan, Change Password, and Logout options
+// ============================================================================
+// SETTINGS SCREEN (Frame 23)
+// ============================================================================
+/// This screen shows user settings options:
+/// - Profile: View user information
+/// - Edit Plan: Change workout plan
+/// - Change Password: Update account password
+/// - Logout: Sign out of the app
 class SettingsScreen extends StatelessWidget {
+  // ==========================================
+  // CONSTRUCTOR PARAMETERS
+  // ==========================================
   final User user;
   final VoidCallback onLogout;
   final VoidCallback? onEditPlan;
@@ -18,61 +27,94 @@ class SettingsScreen extends StatelessWidget {
     this.onChangePassword,
   });
 
+  // ==========================================
+  // BUILD UI
+  // ==========================================
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          // Title
-          const Text(
-            'Setting',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.orange,
-            ),
-          ),
+          _buildTitle(),
           const SizedBox(height: 32),
-
-          // Profile Button (Orange - Primary)
-          _buildSettingButton(
-            icon: Icons.person_outline,
-            label: 'Profile',
-            isPrimary: true,
-            onTap: () => _showProfileDialog(context),
-          ),
+          _buildProfileButton(context),
           const SizedBox(height: 12),
-
-          // Edit Plan Button
-          _buildSettingButton(
-            icon: Icons.edit_note_outlined,
-            label: 'Edit Plan',
-            onTap: onEditPlan ?? () => _showComingSoon(context, 'Edit Plan'),
-          ),
+          _buildEditPlanButton(context),
           const SizedBox(height: 12),
-
-          // Change Password Button
-          _buildSettingButton(
-            icon: Icons.lock_outline,
-            label: 'Change Password',
-            onTap:
-                onChangePassword ??
-                () => _showComingSoon(context, 'Change Password'),
-          ),
+          _buildChangePasswordButton(context),
           const SizedBox(height: 12),
-
-          // Logout Button
-          _buildSettingButton(
-            icon: Icons.logout_outlined,
-            label: 'Logout',
-            onTap: () => _showLogoutConfirmation(context),
-          ),
+          _buildLogoutButton(context),
         ],
       ),
     );
   }
 
+  // ==========================================
+  // BUILD TITLE
+  // ==========================================
+  Widget _buildTitle() {
+    return const Text(
+      'Setting',
+      style: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: Colors.orange,
+      ),
+    );
+  }
+
+  // ==========================================
+  // BUILD PROFILE BUTTON
+  // ==========================================
+  Widget _buildProfileButton(BuildContext context) {
+    return _buildSettingButton(
+      icon: Icons.person_outline,
+      label: 'Profile',
+      isPrimary: true,
+      onTap: () => _showProfileDialog(context),
+    );
+  }
+
+  // ==========================================
+  // BUILD EDIT PLAN BUTTON
+  // ==========================================
+  Widget _buildEditPlanButton(BuildContext context) {
+    return _buildSettingButton(
+      icon: Icons.edit_note_outlined,
+      label: 'Edit Plan',
+      onTap: onEditPlan ?? () => _showComingSoon(context, 'Edit Plan'),
+    );
+  }
+
+  // ==========================================
+  // BUILD CHANGE PASSWORD BUTTON
+  // ==========================================
+  Widget _buildChangePasswordButton(BuildContext context) {
+    return _buildSettingButton(
+      icon: Icons.lock_outline,
+      label: 'Change Password',
+      onTap:
+          onChangePassword ?? () => _showComingSoon(context, 'Change Password'),
+    );
+  }
+
+  // ==========================================
+  // BUILD LOGOUT BUTTON
+  // ==========================================
+  Widget _buildLogoutButton(BuildContext context) {
+    return _buildSettingButton(
+      icon: Icons.logout_outlined,
+      label: 'Logout',
+      onTap: () => _showLogoutConfirmation(context),
+    );
+  }
+
+  // ==========================================
+  // BUILD SETTING BUTTON (REUSABLE)
+  // ==========================================
+  /// Creates a styled button for settings options.
+  /// isPrimary = true makes button orange, false makes it grey.
   Widget _buildSettingButton({
     required IconData icon,
     required String label,
@@ -110,6 +152,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // ==========================================
+  // SHOW PROFILE DIALOG
+  // ==========================================
+  /// Displays a popup with all user information.
   void _showProfileDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -138,6 +184,9 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // ==========================================
+  // BUILD PROFILE ROW (LABEL: VALUE)
+  // ==========================================
   Widget _buildProfileRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -151,6 +200,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // ==========================================
+  // SHOW LOGOUT CONFIRMATION
+  // ==========================================
+  /// Asks user to confirm before logging out.
   void _showLogoutConfirmation(BuildContext context) {
     showDialog(
       context: context,
@@ -174,6 +227,9 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // ==========================================
+  // SHOW COMING SOON MESSAGE
+  // ==========================================
   void _showComingSoon(BuildContext context, String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

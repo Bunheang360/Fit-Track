@@ -9,6 +9,9 @@ class ExerciseRepository {
 
   Future<Database> get _db async => await _dbHelper.database;
 
+  // ==========================================
+  // Get all exercises from database
+  // ==========================================
   Future<List<Exercise>> getAllExercises() async {
     try {
       final db = await _db;
@@ -19,95 +22,124 @@ class ExerciseRepository {
     }
   }
 
+  // ==========================================
+  // Get exercises that match user's plan and categories
+  // ==========================================
   Future<List<Exercise>> getExercisesForUser(User user) async {
     try {
-      final all = await getAllExercises();
-      final filtered = all.where((e) {
-        if (e.plan != user.selectedPlan) return false;
-        return e.categories.any((c) => user.selectedCategories.contains(c));
-      }).toList();
+      // Step 1: Get all exercises
+      final allExercises = await getAllExercises();
 
-      // Sort by GoalTier priority (primary first, then supportive, then recovery)
-      filtered.sort((a, b) {
-        final aTier = _getExercisePriority(a, user.selectedCategories);
-        final bTier = _getExercisePriority(b, user.selectedCategories);
-        return aTier.compareTo(bTier);
-      });
+      // Step 2: Filter by user's plan and categories
+      final matchingExercises = _filterExercisesForUser(allExercises, user);
 
-      return filtered;
+      // Step 3: Sort by priority (primary goals first)
+      _sortByPriority(matchingExercises, user.selectedCategories);
+
+      return matchingExercises;
     } catch (e) {
       return [];
     }
   }
 
-  /// Calculate exercise priority based on GoalTier of matching categories
-  /// Lower number = higher priority (primary=0, supportive=1, recovery=2)
+  // ==========================================
+  // Filter exercises by user's plan and categories
+  // ==========================================
+  List<Exercise> _filterExercisesForUser(List<Exercise> exercises, User user) {
+    List<Exercise> result = [];
+
+    for (final exercise in exercises) {
+      // Must match user's plan
+      if (exercise.plan != user.selectedPlan) continue;
+
+      // Must have at least one matching category
+      bool hasMatchingCategory = false;
+      for (final category in exercise.categories) {
+        if (user.selectedCategories.contains(category)) {
+          hasMatchingCategory = true;
+          break;
+        }
+      }
+
+      if (hasMatchingCategory) {
+        result.add(exercise);
+      }
+    }
+
+    return result;
+  }
+
+  // ==========================================
+  // Sort exercises by goal priority
+  // Primary goals come first, then supportive, then recovery
+  // ==========================================
+  void _sortByPriority(
+    List<Exercise> exercises,
+    List<Categories> userCategories,
+  ) {
+    exercises.sort((a, b) {
+      final priorityA = _getExercisePriority(a, userCategories);
+      final priorityB = _getExercisePriority(b, userCategories);
+      return priorityA.compareTo(priorityB);
+    });
+  }
+
+  // ==========================================
+  // Get priority number for an exercise
+  // Lower number = higher priority
+  // 0 = primary, 1 = supportive, 2 = recovery, 3 = no match
+  // ==========================================
   int _getExercisePriority(Exercise exercise, List<Categories> userCategories) {
-    int bestPriority = 3; // Default lowest priority
+    int bestPriority = 3; // Default: lowest priority
 
     for (final category in exercise.categories) {
       if (userCategories.contains(category)) {
-        final tierPriority = _getTierPriority(category.tier);
-        if (tierPriority < bestPriority) {
-          bestPriority = tierPriority;
+        int priority = _tierToPriority(category.tier);
+        if (priority < bestPriority) {
+          bestPriority = priority;
         }
       }
     }
+
     return bestPriority;
   }
 
-  /// Convert GoalTier to numeric priority (lower = higher priority)
-  int _getTierPriority(GoalTier tier) {
-    switch (tier) {
-      case GoalTier.primary:
-        return 0;
-      case GoalTier.supportive:
-        return 1;
-      case GoalTier.recovery:
-        return 2;
-    }
+  // ==========================================
+  // Convert tier to priority number
+  // ==========================================
+  int _tierToPriority(GoalTier tier) {
+    if (tier == GoalTier.primary) return 0;
+    if (tier == GoalTier.supportive) return 1;
+    return 2; // recovery
   }
 
+  // ==========================================
+  // Get exercises by workout section (warmup, main, cooldown)
+  // ==========================================
   Future<List<Exercise>> getExercisesBySection(
     User user,
     WorkoutType section,
   ) async {
     try {
       final userExercises = await getExercisesForUser(user);
-      return userExercises.where((e) => e.sectionType == section).toList();
+
+      List<Exercise> result = [];
+      for (final exercise in userExercises) {
+        if (exercise.sectionType == section) {
+          result.add(exercise);
+        }
+      }
+
+      return result;
     } catch (e) {
       return [];
     }
   }
 
-  Future<List<Exercise>> getExercisesByBodyTarget(
-    User user,
-    BodyTarget target,
-  ) async {
-    try {
-      final userExercises = await getExercisesForUser(user);
-      return userExercises.where((e) => e.bodyTarget == target).toList();
-    } catch (e) {
-      return [];
-    }
-  }
-
-  Future<List<Exercise>> getExercisesByPlan(Plan plan) async {
-    try {
-      final db = await _db;
-      final maps = await db.query(
-        'exercises',
-        where: 'plan = ?',
-        whereArgs: [plan.name],
-      );
-      return maps.map((m) => _dbHelper.exerciseFromMap(m)).toList();
-    } catch (e) {
-      return [];
-    }
-  }
-
-  /// Get the body target focus for a specific day of week based on user's selected days
-  /// Rotates through: Upper Body -> Lower Body -> Core -> Full Body
+  // ==========================================
+  // Get body target for a specific workout day
+  // Rotates: Upper Body -> Lower Body -> Core -> Full Body
+  // ==========================================
   BodyTarget getBodyTargetForDay(User user, DayOfWeek day) {
     final selectedDays = user.selectedDays;
     if (selectedDays.isEmpty) return BodyTarget.fullBody;
@@ -115,7 +147,7 @@ class ExerciseRepository {
     final dayIndex = selectedDays.indexOf(day);
     if (dayIndex == -1) return BodyTarget.fullBody;
 
-    // Rotate through body targets based on workout day number
+    // Rotate through body targets based on day number
     const targets = [
       BodyTarget.upperBody,
       BodyTarget.lowerBody,
@@ -125,105 +157,29 @@ class ExerciseRepository {
     return targets[dayIndex % targets.length];
   }
 
-  /// Get today's body target for the user
-  BodyTarget getTodaysBodyTarget(User user) {
-    final today = _getCurrentDayOfWeek();
-    return getBodyTargetForDay(user, today);
-  }
-
-  /// Get exercises filtered by today's body target focus
-  Future<List<Exercise>> getExercisesForToday(User user) async {
-    try {
-      final today = _getCurrentDayOfWeek();
-
-      // Check if today is a workout day for the user
-      if (!user.selectedDays.contains(today)) {
-        return []; // Rest day - no exercises
-      }
-
-      final targetBodyPart = getBodyTargetForDay(user, today);
-      final userExercises = await getExercisesForUser(user);
-
-      // For main workout: filter by body target
-      // For warmup/cooldown: include fullBody exercises regardless
-      return userExercises.where((e) {
-        if (e.sectionType == WorkoutType.warmUp ||
-            e.sectionType == WorkoutType.coolDown) {
-          return true; // Include all warmup/cooldown exercises
-        }
-        // Main workout: match body target or fullBody exercises
-        return e.bodyTarget == targetBodyPart ||
-            e.bodyTarget == BodyTarget.fullBody;
-      }).toList();
-    } catch (e) {
-      return [];
-    }
-  }
-
-  /// Get workout plan for today based on user's schedule and body target rotation
-  Future<WorkoutPlan> getWorkoutPlanForToday(User user) async {
-    try {
-      final today = _getCurrentDayOfWeek();
-
-      // Check if today is a workout day
-      if (!user.selectedDays.contains(today)) {
-        return WorkoutPlan(
-          warmupExercises: [],
-          mainExercises: [],
-          cooldownExercises: [],
-          userLevel: user.selectedLevel,
-          isRestDay: true,
-        );
-      }
-
-      final targetBodyPart = getBodyTargetForDay(user, today);
-      final allUserExercises = await getExercisesForUser(user);
-
-      // Get warmup exercises (all warmups)
-      final warmup = allUserExercises
-          .where((e) => e.sectionType == WorkoutType.warmUp)
-          .toList();
-
-      // Get main exercises filtered by today's body target
-      final main = allUserExercises.where((e) {
-        if (e.sectionType != WorkoutType.mainWorkout) return false;
-        return e.bodyTarget == targetBodyPart ||
-            e.bodyTarget == BodyTarget.fullBody;
-      }).toList();
-
-      // Get cooldown exercises (all cooldowns)
-      final cooldown = allUserExercises
-          .where((e) => e.sectionType == WorkoutType.coolDown)
-          .toList();
-
-      return WorkoutPlan(
-        warmupExercises: warmup,
-        mainExercises: main,
-        cooldownExercises: cooldown,
-        userLevel: user.selectedLevel,
-        todaysBodyTarget: targetBodyPart,
-      );
-    } catch (e) {
-      return WorkoutPlan(
-        warmupExercises: [],
-        mainExercises: [],
-        cooldownExercises: [],
-        userLevel: user.selectedLevel,
-      );
-    }
-  }
-
-  /// Get the full workout plan (all exercises, not day-filtered)
+  // ==========================================
+  // Get complete workout plan for user
+  // ==========================================
   Future<WorkoutPlan> getWorkoutPlanForUser(User user) async {
     try {
-      final warmup = await getExercisesBySection(user, WorkoutType.warmUp);
-      final main = await getExercisesBySection(user, WorkoutType.mainWorkout);
-      final cooldown = await getExercisesBySection(user, WorkoutType.coolDown);
+      // Get each section separately
+      final warmupExercises = await getExercisesBySection(
+        user,
+        WorkoutType.warmUp,
+      );
+      final mainExercises = await getExercisesBySection(
+        user,
+        WorkoutType.mainWorkout,
+      );
+      final cooldownExercises = await getExercisesBySection(
+        user,
+        WorkoutType.coolDown,
+      );
 
       return WorkoutPlan(
-        warmupExercises: warmup,
-        mainExercises: main,
-        cooldownExercises: cooldown,
+        warmupExercises: warmupExercises,
+        mainExercises: mainExercises,
+        cooldownExercises: cooldownExercises,
         userLevel: user.selectedLevel,
       );
     } catch (e) {
@@ -234,20 +190,6 @@ class ExerciseRepository {
         userLevel: user.selectedLevel,
       );
     }
-  }
-
-  DayOfWeek _getCurrentDayOfWeek() {
-    final now = DateTime.now();
-    return DayOfWeek.values[now.weekday - 1]; // weekday is 1-7 (Mon-Sun)
-  }
-
-  Future<void> addExercise(Exercise exercise) async {
-    final db = await _db;
-    await db.insert(
-      'exercises',
-      _dbHelper.exerciseToMap(exercise),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
   }
 }
 

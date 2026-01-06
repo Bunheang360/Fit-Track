@@ -91,12 +91,6 @@ class UserRepository {
     return user != null;
   }
 
-  Future<bool> emailExists(String email) async {
-    if (email.trim().isEmpty) return false;
-    final user = await getUserByEmail(email);
-    return user != null;
-  }
-
   Future<User?> validateLogin(String username, String password) async {
     try {
       final user = await getUserByUsername(username);
@@ -105,16 +99,6 @@ class UserRepository {
     } catch (e) {
       return null;
     }
-  }
-
-  Future<void> deleteUser(String userId) async {
-    final db = await _db;
-    await db.delete('users', where: 'id = ?', whereArgs: [userId]);
-  }
-
-  Future<void> clearAllUsers() async {
-    final db = await _db;
-    await db.delete('users');
   }
 
   void _validateUser(User user) {

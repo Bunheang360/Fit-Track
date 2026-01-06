@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/user.dart';
 import '../../../data/models/exercise.dart';
-import '../../../data/models/exercise_session.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../../../data/repositories/exercise_repository.dart';
 import '../../../data/repositories/settings_repository.dart';
@@ -37,10 +36,10 @@ class _HomeScreenState extends State<HomeScreen> {
   // ==========================================
   // STATE VARIABLES
   // ==========================================
-  User? _currentUser;           // The logged-in user's data
-  WorkoutPlan? _workoutPlan;    // Today's workout exercises
-  bool _isLoading = true;       // Shows loading spinner when true
-  NavTab _selectedTab = NavTab.home;  // Current bottom nav tab
+  User? _currentUser; // The logged-in user's data
+  WorkoutPlan? _workoutPlan; // Today's workout exercises
+  bool _isLoading = true; // Shows loading spinner when true
+  NavTab _selectedTab = NavTab.home; // Current bottom nav tab
 
   // Track which exercises have been completed today
   // Using Set<String> ensures no duplicates (each exercise ID only once)
@@ -76,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Step 3: Get the workout plan based on user's preferences
       final workoutPlan = await _exerciseRepository.getWorkoutPlanForUser(user);
-      
+
       // Step 4: Load today's completed exercises from database
       await _loadTodaysProgress(userId, workoutPlan);
 
@@ -96,21 +95,31 @@ class _HomeScreenState extends State<HomeScreen> {
   // ==========================================
   /// This method loads exercises the user already completed today.
   /// This ensures progress is saved even if user logs out and back in.
-  Future<void> _loadTodaysProgress(String userId, WorkoutPlan? workoutPlan) async {
+  Future<void> _loadTodaysProgress(
+    String userId,
+    WorkoutPlan? workoutPlan,
+  ) async {
     if (workoutPlan == null) return;
-    
-    // Get all exercise sessions from today
+
+    // Step 1: Get all exercise sessions from today
     final todaySessions = await _sessionRepository.getTodaySessions(userId);
-    
-    // Create sets of exercise IDs for quick lookup
-    final warmupIds = workoutPlan.warmupExercises.map((e) => e.id).toSet();
-    final mainIds = workoutPlan.mainExercises.map((e) => e.id).toSet();
-    
-    // Clear old data and rebuild from database
+
+    // Step 2: Create lists of warmup and main workout exercise IDs
+    List<String> warmupIds = [];
+    for (final exercise in workoutPlan.warmupExercises) {
+      warmupIds.add(exercise.id);
+    }
+
+    List<String> mainIds = [];
+    for (final exercise in workoutPlan.mainExercises) {
+      mainIds.add(exercise.id);
+    }
+
+    // Step 3: Clear old completed data
     _completedWarmupIds.clear();
     _completedMainWorkoutIds.clear();
-    
-    // Sort each completed exercise into the correct category
+
+    // Step 4: Check each session and mark as completed
     for (final session in todaySessions) {
       if (warmupIds.contains(session.exerciseId)) {
         _completedWarmupIds.add(session.exerciseId);
@@ -415,13 +424,11 @@ class _HomeScreenState extends State<HomeScreen> {
     // Calculate completed counts from sets (not exceeding total)
     final warmupCompleted = _completedWarmupIds.length;
     final mainCompleted = _completedMainWorkoutIds.length;
-    
+
     final warmupRemaining = warmupCount > 0
         ? (warmupCount - warmupCompleted) * 2
         : 0;
-    final mainRemaining = mainCount > 0
-        ? (mainCount - mainCompleted) * 5
-        : 0;
+    final mainRemaining = mainCount > 0 ? (mainCount - mainCompleted) * 5 : 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -483,28 +490,29 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Opens the workout list screen for warmup or main workout.
   /// Only shows exercises that haven't been completed yet today.
   void _navigateToWorkoutList(String title, List<Exercise> exercises) {
-    // Get the correct set of completed IDs based on workout type
-    final completedIds = title == 'Warm Up' 
-        ? _completedWarmupIds 
-        : _completedMainWorkoutIds;
-    
-    // Filter out exercises that are already done
-    final remainingExercises = exercises
-        .where((exercise) => !completedIds.contains(exercise.id))
-        .toList();
-    
-    // If all exercises are done, show a message and don't navigate
+    // Step 1: Get completed exercise IDs based on workout type
+    Set<String> completedIds;
+    if (title == 'Warm Up') {
+      completedIds = _completedWarmupIds;
+    } else {
+      completedIds = _completedMainWorkoutIds;
+    }
+
+    // Step 2: Filter out completed exercises
+    List<Exercise> remainingExercises = [];
+    for (final exercise in exercises) {
+      if (!completedIds.contains(exercise.id)) {
+        remainingExercises.add(exercise);
+      }
+    }
+
+    // Step 3: If all done, show message and return
     if (remainingExercises.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$title already completed!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      _showCompletedMessage(title);
       return;
     }
-    
-    // Navigate to the workout list screen
+
+    // Step 4: Navigate to workout list
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -513,42 +521,35 @@ class _HomeScreenState extends State<HomeScreen> {
           exercises: remainingExercises,
           userLevel: _currentUser!.selectedLevel,
           userId: _currentUser!.id,
-          // This callback runs when user completes an exercise
-          onExerciseCompleted: (exercise) {
-            // Save to database so progress persists
-            _saveExerciseSession(exercise);
-            
-            // Update local state to show progress immediately
-            setState(() {
-              if (title == 'Warm Up') {
-                _completedWarmupIds.add(exercise.id);
-              } else {
-                _completedMainWorkoutIds.add(exercise.id);
-              }
-            });
-          },
+          onExerciseCompleted: (exercise) =>
+              _onExerciseCompleted(title, exercise),
         ),
       ),
     );
   }
 
   // ==========================================
-  // SAVE COMPLETED EXERCISE TO DATABASE
+  // HANDLE EXERCISE COMPLETION
   // ==========================================
-  /// Saves a completed exercise session to the database.
-  /// This ensures progress is saved even if user closes the app.
-  Future<void> _saveExerciseSession(Exercise exercise) async {
-    // Create a session record with exercise details
-    final session = ExerciseSession(
-      userId: _currentUser!.id,
-      exerciseId: exercise.id,
-      date: DateTime.now(),
-      setsCompleted: exercise.getSetsForLevel(_currentUser!.selectedLevel),
-      repsCompleted: exercise.getRepsForLevel(_currentUser!.selectedLevel),
-      durationSeconds: exercise.getDurationForLevel(_currentUser!.selectedLevel),
+  void _onExerciseCompleted(String workoutType, Exercise exercise) {
+    setState(() {
+      if (workoutType == 'Warm Up') {
+        _completedWarmupIds.add(exercise.id);
+      } else {
+        _completedMainWorkoutIds.add(exercise.id);
+      }
+    });
+  }
+
+  // ==========================================
+  // SHOW COMPLETED MESSAGE
+  // ==========================================
+  void _showCompletedMessage(String title) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$title already completed!'),
+        backgroundColor: Colors.green,
+      ),
     );
-    
-    // Save to database
-    await _sessionRepository.saveSession(session);
   }
 }
