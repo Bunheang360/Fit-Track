@@ -1,36 +1,53 @@
+import 'package:sqflite/sqflite.dart';
 import '../models/user.dart';
 import '../datasources/database_helper.dart';
 
 class UserRepository {
-  final DatabaseHelper _db = DatabaseHelper.instance;
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+
+  Future<Database> get _db async => await _dbHelper.database;
 
   Future<List<User>> getAllUsers() async {
     try {
-      return await _db.getAllUsers();
+      final db = await _db;
+      final maps = await db.query('users');
+      return maps.map((m) => _dbHelper.userFromMap(m)).toList();
     } catch (e) {
       return [];
     }
   }
 
   Future<void> saveUser(User user) async {
-    try {
-      _validateUser(user);
+    _validateUser(user);
+    final db = await _db;
+    final existingUser = await getUserById(user.id);
 
-      final existingUser = await _db.getUserById(user.id);
-
-      if (existingUser != null) {
-        await _db.updateUser(user);
-      } else {
-        await _db.insertUser(user);
-      }
-    } catch (e) {
-      rethrow;
+    if (existingUser != null) {
+      await db.update(
+        'users',
+        _dbHelper.userToMap(user),
+        where: 'id = ?',
+        whereArgs: [user.id],
+      );
+    } else {
+      await db.insert(
+        'users',
+        _dbHelper.userToMap(user),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
     }
   }
 
   Future<User?> getUserById(String userId) async {
     try {
-      return await _db.getUserById(userId);
+      final db = await _db;
+      final maps = await db.query(
+        'users',
+        where: 'id = ?',
+        whereArgs: [userId],
+      );
+      if (maps.isEmpty) return null;
+      return _dbHelper.userFromMap(maps.first);
     } catch (e) {
       return null;
     }
@@ -38,10 +55,31 @@ class UserRepository {
 
   Future<User?> getUserByUsername(String username) async {
     try {
-      if (username.trim().isEmpty) {
-        throw Exception('Username cannot be empty');
-      }
-      return await _db.getUserByUsername(username);
+      if (username.trim().isEmpty) return null;
+      final db = await _db;
+      final maps = await db.query(
+        'users',
+        where: 'LOWER(name) = LOWER(?)',
+        whereArgs: [username],
+      );
+      if (maps.isEmpty) return null;
+      return _dbHelper.userFromMap(maps.first);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<User?> getUserByEmail(String email) async {
+    try {
+      if (email.trim().isEmpty) return null;
+      final db = await _db;
+      final maps = await db.query(
+        'users',
+        where: 'LOWER(email) = LOWER(?)',
+        whereArgs: [email],
+      );
+      if (maps.isEmpty) return null;
+      return _dbHelper.userFromMap(maps.first);
     } catch (e) {
       return null;
     }
@@ -53,43 +91,13 @@ class UserRepository {
     return user != null;
   }
 
-  Future<bool> emailExists(String email) async {
-    if (email.trim().isEmpty) return false;
-    final user = await _db.getUserByEmail(email);
-    return user != null;
-  }
-
   Future<User?> validateLogin(String username, String password) async {
     try {
       final user = await getUserByUsername(username);
-
-      if (user == null) {
-        return null;
-      }
-
-      if (user.password != password) {
-        return null;
-      }
-
+      if (user == null || user.password != password) return null;
       return user;
     } catch (e) {
       return null;
-    }
-  }
-
-  Future<void> deleteUser(String userId) async {
-    try {
-      await _db.deleteUser(userId);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<void> clearAllUsers() async {
-    try {
-      await _db.deleteAllUsers();
-    } catch (e) {
-      rethrow;
     }
   }
 

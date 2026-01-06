@@ -24,49 +24,77 @@ class ExerciseDetailScreen extends StatefulWidget {
 }
 
 class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
-  // Flag to prevent multiple submissions
+  // ==========================================
+  // STATE VARIABLES
+  // ==========================================
+  /// Flag to prevent multiple submissions when user taps Done button
   bool _isCompleting = false;
 
-  // Method to handle done button press
+  // ==========================================
+  // HANDLE DONE BUTTON
+  // ==========================================
+  /// When user taps Done, save session to database and go back.
   Future<void> _handleDone() async {
-    // If already completing, ignore the press
+    // Step 1: Check if already completing (prevent double tap)
     if (_isCompleting) return;
 
-    // Set flag to prevent multiple presses
+    // Step 2: Show loading state
     setState(() {
       _isCompleting = true;
     });
 
     try {
-      // Save the exercise session to database
-      final session = ExerciseSession(
-        userId: widget.userId,
-        exerciseId: widget.exercise.id,
-        date: DateTime.now(),
-        setsCompleted: widget.exercise.getSetsForLevel(widget.userLevel),
-        repsCompleted: widget.exercise.getRepsForLevel(widget.userLevel),
-        durationSeconds: widget.exercise.getDurationForLevel(widget.userLevel),
-      );
+      // Step 3: Create and save session
+      await _saveExerciseSession();
 
-      await SessionRepository().saveSession(session);
-
-      // Call the callback to notify parent
+      // Step 4: Notify parent and go back
       widget.onDone();
-
-      // Go back to previous screen
-      if (mounted) {
-        Navigator.pop(context);
-      }
+      _goBack();
     } catch (e) {
-      // If error, allow user to try again
-      if (mounted) {
-        setState(() {
-          _isCompleting = false;
-        });
-      }
+      // Step 5: If error, reset loading state
+      _resetLoadingState();
     }
   }
 
+  // ==========================================
+  // SAVE EXERCISE SESSION TO DATABASE
+  // ==========================================
+  Future<void> _saveExerciseSession() async {
+    final session = ExerciseSession(
+      userId: widget.userId,
+      exerciseId: widget.exercise.id,
+      date: DateTime.now(),
+      setsCompleted: widget.exercise.getSetsForLevel(widget.userLevel),
+      repsCompleted: widget.exercise.getRepsForLevel(widget.userLevel),
+      durationSeconds: widget.exercise.getDurationForLevel(widget.userLevel),
+    );
+
+    await SessionRepository().saveSession(session);
+  }
+
+  // ==========================================
+  // GO BACK TO PREVIOUS SCREEN
+  // ==========================================
+  void _goBack() {
+    if (mounted) {
+      Navigator.pop(context);
+    }
+  }
+
+  // ==========================================
+  // RESET LOADING STATE (ON ERROR)
+  // ==========================================
+  void _resetLoadingState() {
+    if (mounted) {
+      setState(() {
+        _isCompleting = false;
+      });
+    }
+  }
+
+  // ==========================================
+  // BUILD UI
+  // ==========================================
   @override
   Widget build(BuildContext context) {
     final sets = widget.exercise.getSetsForLevel(widget.userLevel);
@@ -77,126 +105,196 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: const OrangeBackButton(),
-        leadingWidth: 90,
+      appBar: _buildAppBar(),
+      body: _buildBody(),
+      bottomNavigationBar: _buildDoneButton(),
+    );
+  }
+
+  // ==========================================
+  // BUILD APP BAR
+  // ==========================================
+  AppBar _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: const OrangeBackButton(),
+      leadingWidth: 90,
+    );
+  }
+
+  // ==========================================
+  // BUILD BODY
+  // ==========================================
+  Widget _buildBody() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildExerciseName(),
+          const SizedBox(height: 24),
+          _buildExerciseImage(),
+          const SizedBox(height: 24),
+          _buildInstructions(),
+          const SizedBox(height: 24),
+          _buildExerciseDetails(),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(isSmall ? 16 : 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Exercise name
-            Center(
-              child: Text(
-                widget.exercise.name,
-                style: TextStyle(
-                  fontSize: isSmall ? 24 : 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange[800],
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            SizedBox(height: isSmall ? 16 : 24),
+    );
+  }
 
-            // Exercise image placeholder
-            Container(
-              height: screenWidth * 0.5,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.fitness_center,
-                  size: 80,
-                  color: Colors.orange[300],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Instructions
-            const Text(
-              'How to do:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ...widget.exercise.instructions.asMap().entries.map((entry) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${entry.key + 1}. ',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    Expanded(
-                      child: Text(
-                        entry.value,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-            const SizedBox(height: 24),
-
-            // Exercise details
-            Text(
-              'Duration: ${duration > 0 ? "${duration}s" : "7-10 mins"}',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Amounts: $sets Sets',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '1 set = $reps reps/times',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ],
+  // ==========================================
+  // BUILD EXERCISE NAME
+  // ==========================================
+  Widget _buildExerciseName() {
+    return Center(
+      child: Text(
+        widget.exercise.name,
+        style: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          color: Colors.orange[800],
         ),
+        textAlign: TextAlign.center,
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _isCompleting ? Colors.grey : Colors.orange,
-            foregroundColor: Colors.white,
-            minimumSize: const Size.fromHeight(55),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          onPressed: _isCompleting ? null : _handleDone,
-          child: _isCompleting
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
+    );
+  }
+
+  // ==========================================
+  // BUILD EXERCISE IMAGE
+  // ==========================================
+  Widget _buildExerciseImage() {
+    return Container(
+      height: 200,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Icon(Icons.fitness_center, size: 80, color: Colors.orange[300]),
+      ),
+    );
+  }
+
+  // ==========================================
+  // BUILD INSTRUCTIONS LIST
+  // ==========================================
+  Widget _buildInstructions() {
+    List<Widget> instructionWidgets = [];
+
+    // Add header
+    instructionWidgets.add(
+      const Text(
+        'How to do:',
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+    );
+    instructionWidgets.add(const SizedBox(height: 12));
+
+    // Add each instruction step
+    for (int i = 0; i < widget.exercise.instructions.length; i++) {
+      instructionWidgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${i + 1}. ',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              Expanded(
+                child: Text(
+                  widget.exercise.instructions[i],
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[700],
+                    height: 1.5,
                   ),
-                )
-              : const Text(
-                  'Done',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
+              ),
+            ],
+          ),
         ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: instructionWidgets,
+    );
+  }
+
+  // ==========================================
+  // BUILD EXERCISE DETAILS (SETS, REPS, DURATION)
+  // ==========================================
+  Widget _buildExerciseDetails() {
+    final sets = widget.exercise.getSetsForLevel(widget.userLevel);
+    final reps = widget.exercise.getRepsForLevel(widget.userLevel);
+    final duration = widget.exercise.getDurationForLevel(widget.userLevel);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Duration: ${duration > 0 ? "${duration}s" : "7-10 mins"}',
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Amounts: $sets Sets',
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '1 set = $reps reps/times',
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ],
+    );
+  }
+
+  // ==========================================
+  // BUILD DONE BUTTON
+  // ==========================================
+  Widget _buildDoneButton() {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _isCompleting ? Colors.grey : Colors.orange,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(55),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        onPressed: _isCompleting ? null : _handleDone,
+        child: _isCompleting ? _buildLoadingIndicator() : _buildDoneText(),
       ),
+    );
+  }
+
+  // ==========================================
+  // BUILD LOADING INDICATOR
+  // ==========================================
+  Widget _buildLoadingIndicator() {
+    return const SizedBox(
+      height: 20,
+      width: 20,
+      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+    );
+  }
+
+  // ==========================================
+  // BUILD DONE TEXT
+  // ==========================================
+  Widget _buildDoneText() {
+    return const Text(
+      'Done',
+      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
     );
   }
 }

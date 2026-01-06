@@ -2,9 +2,18 @@ import 'package:flutter/material.dart';
 import '../../../data/models/user.dart';
 import '../../../core/constants/enums.dart';
 
-/// Settings Screen (Frame 23)
-/// Shows Profile, Edit Plan, Change Password, and Logout options
+// ============================================================================
+// SETTINGS SCREEN (Frame 23)
+// ============================================================================
+/// This screen shows user settings options:
+/// - Profile: View user information
+/// - Edit Plan: Change workout plan
+/// - Change Password: Update account password
+/// - Logout: Sign out of the app
 class SettingsScreen extends StatelessWidget {
+  // ==========================================
+  // CONSTRUCTOR PARAMETERS
+  // ==========================================
   final User user;
   final VoidCallback onLogout;
   final VoidCallback? onEditPlan;
@@ -20,6 +29,9 @@ class SettingsScreen extends StatelessWidget {
     this.onEditProfile,
   });
 
+  // ==========================================
+  // BUILD UI
+  // ==========================================
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -83,6 +95,11 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // ==========================================
+  // BUILD SETTING BUTTON (REUSABLE)
+  // ==========================================
+  /// Creates a styled button for settings options.
+  /// isPrimary = true makes button orange, false makes it grey.
   Widget _buildSettingButton({
     required BuildContext context,
     required IconData icon,
@@ -127,6 +144,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // ==========================================
+  // SHOW PROFILE DIALOG
+  // ==========================================
+  /// Displays a popup with all user information.
   void _showProfileDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -155,6 +176,9 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // ==========================================
+  // BUILD PROFILE ROW (LABEL: VALUE)
+  // ==========================================
   Widget _buildProfileRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -168,6 +192,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // ==========================================
+  // SHOW LOGOUT CONFIRMATION
+  // ==========================================
+  /// Asks user to confirm before logging out.
   void _showLogoutConfirmation(BuildContext context) {
     showDialog(
       context: context,
@@ -191,6 +219,9 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // ==========================================
+  // SHOW COMING SOON MESSAGE
+  // ==========================================
   void _showComingSoon(BuildContext context, String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

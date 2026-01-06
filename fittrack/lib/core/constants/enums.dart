@@ -1,10 +1,8 @@
 enum GoalTier { primary, supportive, recovery }
 
-enum Gender { male, female, preferNotToSay }
+enum Gender { male, female }
 
 enum AnalyticsPeriod { days, weeks, months }
-
-enum QuestionType { singleChoice, multipleChoice, number, scale, text }
 
 enum Categories {
   strength,
@@ -33,7 +31,7 @@ enum DayOfWeek {
   sunday,
 }
 
-enum SectionType { warmUp, mainWorkout, coolDown }
+enum WorkoutType { warmUp, mainWorkout, coolDown }
 
 enum BodyTarget { upperBody, lowerBody, core, fullBody }
 
@@ -143,8 +141,6 @@ extension GenderExtension on Gender {
         return 'Male';
       case Gender.female:
         return 'Female';
-      case Gender.preferNotToSay:
-        return 'Prefer not to say';
     }
   }
 }
