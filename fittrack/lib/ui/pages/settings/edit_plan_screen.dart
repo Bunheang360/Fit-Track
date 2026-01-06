@@ -322,19 +322,11 @@ class _EditPlanScreenState extends State<EditPlanScreen> {
 
   /// Creates the category chips that can be selected/deselected
   Widget _buildCategoriesSelection() {
-    // Single row with all categories expanded to fill screen width
-    return Row(
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
       children: Categories.values.map((category) {
-        final index = Categories.values.toList().indexOf(category);
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: index == 0 ? 0 : 6,
-              right: index == Categories.values.length - 1 ? 0 : 6,
-            ),
-            child: _buildCategoryChip(category),
-          ),
-        );
+        return _buildCategoryChip(category);
       }).toList(),
     );
   }
@@ -355,24 +347,21 @@ class _EditPlanScreenState extends State<EditPlanScreen> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? Colors.orange[800] : Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? Colors.orange[800]! : Colors.grey[300]!,
             width: 2,
           ),
         ),
-        child: Center(
-          child: Text(
-            category.displayName,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.grey[700],
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-            ),
-            textAlign: TextAlign.center,
+        child: Text(
+          category.displayName,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.grey[700],
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
         ),
       ),

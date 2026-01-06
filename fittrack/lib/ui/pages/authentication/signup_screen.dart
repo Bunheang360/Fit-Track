@@ -27,13 +27,18 @@ class _SignupState extends State<Signup> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
+    final padding = isSmall ? 20.0 : 30.0;
+    final logoSize = (screenWidth * 0.3).clamp(80.0, 120.0);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(30.0),
+            padding: EdgeInsets.all(padding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -41,22 +46,22 @@ class _SignupState extends State<Signup> {
                 Center(
                   child: Image(
                     image: const AssetImage('assets/images/logo.png'),
-                    width: 120,
-                    height: 120,
+                    width: logoSize,
+                    height: logoSize,
                   ),
                 ),
-                const SizedBox(height: 30),
+                SizedBox(height: isSmall ? 20 : 30),
 
                 // Register title
                 Text(
                   "Register",
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: isSmall ? 24 : 28,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
-                const SizedBox(height: 30),
+                SizedBox(height: isSmall ? 20 : 30),
 
                 // Username field
                 Text(

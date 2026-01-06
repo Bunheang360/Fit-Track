@@ -16,8 +16,11 @@ class WorkoutSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmall ? 12 : 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -26,28 +29,28 @@ class WorkoutSectionCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(isSmall ? 8 : 12),
             decoration: BoxDecoration(
               color: Colors.grey[100],
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 24, color: Colors.black87),
+            child: Icon(icon, size: isSmall ? 20 : 24, color: Colors.black87),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: isSmall ? 12 : 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: isSmall ? 14 : 16,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  style: TextStyle(fontSize: isSmall ? 10 : 12, color: Colors.grey[500]),
                 ),
               ],
             ),
@@ -56,16 +59,19 @@ class WorkoutSectionCard extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: EdgeInsets.symmetric(
+                horizontal: isSmall ? 14 : 20, 
+                vertical: isSmall ? 8 : 10,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
               elevation: 0,
             ),
             onPressed: onStart,
-            child: const Text(
+            child: Text(
               'Start',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: isSmall ? 12 : 14, fontWeight: FontWeight.w600),
             ),
           ),
         ],

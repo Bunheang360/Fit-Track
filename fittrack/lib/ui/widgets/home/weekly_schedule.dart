@@ -9,9 +9,13 @@ class WeeklySchedule extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final today = DateTime.now().weekday;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
+    final dayHeight = isSmall ? 40.0 : 50.0;
+    final dayFontSize = isSmall ? 11.0 : 13.0;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmall ? 12 : 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -20,15 +24,15 @@ class WeeklySchedule extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Weekly Schedule',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: isSmall ? 12 : 14,
               fontWeight: FontWeight.w600,
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: isSmall ? 8 : 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(7, (index) {
@@ -40,8 +44,8 @@ class WeeklySchedule extends StatelessWidget {
 
               return Expanded(
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  height: 50,
+                  margin: EdgeInsets.symmetric(horizontal: isSmall ? 1 : 3),
+                  height: dayHeight,
                   decoration: BoxDecoration(
                     color: isToday
                         ? Colors.orange
@@ -56,9 +60,9 @@ class WeeklySchedule extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      dayNames[index],
+                      isSmall ? dayNames[index].substring(0, 1) : dayNames[index],
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: dayFontSize,
                         fontWeight: FontWeight.w600,
                         color: isToday
                             ? Colors.white

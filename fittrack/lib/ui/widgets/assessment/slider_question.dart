@@ -59,25 +59,29 @@ class _SliderQuestionState extends State<SliderQuestion> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
+    final padding = isSmall ? 20.0 : 30.0;
+
     return Padding(
-      padding: const EdgeInsets.all(30.0),
+      padding: EdgeInsets.all(padding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(height: 20),
+          SizedBox(height: isSmall ? 10 : 20),
           // Title
           Text(
             widget.title,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 28,
+              fontSize: isSmall ? 22 : 28,
               fontWeight: FontWeight.bold,
               color: Colors.grey[800],
               height: 1.2,
             ),
           ),
 
-          const SizedBox(height: 40),
+          SizedBox(height: isSmall ? 30 : 40),
 
           // Content
           Expanded(
@@ -90,12 +94,12 @@ class _SliderQuestionState extends State<SliderQuestion> {
                   Text(
                     _getDisplayValue(),
                     style: TextStyle(
-                      fontSize: 64,
+                      fontSize: isSmall ? 48 : 64,
                       fontWeight: FontWeight.bold,
                       color: Colors.orange[800],
                     ),
                   ),
-                  const SizedBox(height: 50),
+                  SizedBox(height: isSmall ? 30 : 50),
 
                   // Improved Slider
                   SliderTheme(
@@ -104,12 +108,12 @@ class _SliderQuestionState extends State<SliderQuestion> {
                       inactiveTrackColor: Colors.grey[300],
                       trackHeight: 8.0,
                       thumbColor: Colors.orange[800],
-                      thumbShape: const RoundSliderThumbShape(
-                        enabledThumbRadius: 14.0,
+                      thumbShape: RoundSliderThumbShape(
+                        enabledThumbRadius: isSmall ? 12.0 : 14.0,
                         elevation: 4.0,
                       ),
                       overlayColor: Colors.orange.withOpacity(0.2),
-                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 28.0),
+                      overlayShape: RoundSliderOverlayShape(overlayRadius: isSmall ? 24.0 : 28.0),
                       tickMarkShape: const RoundSliderTickMarkShape(tickMarkRadius: 0),
                     ),
                     child: Slider(
@@ -120,19 +124,19 @@ class _SliderQuestionState extends State<SliderQuestion> {
                       onChanged: _onSliderChanged,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: isSmall ? 15 : 20),
 
                   // Helper text
                   Text(
                     'Slide to select',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                    style: TextStyle(fontSize: isSmall ? 14 : 16, color: Colors.grey[500]),
                   ),
                 ],
               ),
             ),
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: isSmall ? 15 : 20),
 
           // Continue button
           SizedBox(
@@ -141,7 +145,7 @@ class _SliderQuestionState extends State<SliderQuestion> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange[800],
                 foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(55),
+                minimumSize: Size.fromHeight(isSmall ? 48 : 55),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -150,8 +154,8 @@ class _SliderQuestionState extends State<SliderQuestion> {
               onPressed: widget.onNext,
               child: Text(
                 widget.isLastPage ? 'Complete' : 'Continue',
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: isSmall ? 16 : 18,
                   fontWeight: FontWeight.w600,
                 ),
               ),

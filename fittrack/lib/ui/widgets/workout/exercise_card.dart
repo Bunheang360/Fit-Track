@@ -27,11 +27,13 @@ class ExerciseCard extends StatelessWidget {
     final sets = exercise.getSetsForLevel(userLevel);
     final reps = exercise.getRepsForLevel(userLevel);
     final duration = exercise.getDurationForLevel(userLevel);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: EdgeInsets.all(isSmall ? 8 : 10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
@@ -44,29 +46,29 @@ class ExerciseCard extends StatelessWidget {
             Text(
               exercise.name,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: isSmall ? 11 : 13,
                 fontWeight: FontWeight.bold,
                 color: Colors.orange[800],
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: isSmall ? 4 : 6),
             
             // Duration
             Text(
               'Duration: ${duration > 0 ? "${duration}s" : "7-10 min"}',
-              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+              style: TextStyle(fontSize: isSmall ? 9 : 10, color: Colors.grey[600]),
             ),
             // Amount (sets)
             Text(
               'Amount: $sets sets',
-              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+              style: TextStyle(fontSize: isSmall ? 9 : 10, color: Colors.grey[600]),
             ),
             // Reps per set
             Text(
               '1 set = $reps reps/times',
-              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+              style: TextStyle(fontSize: isSmall ? 9 : 10, color: Colors.grey[600]),
             ),
             
             const Spacer(),
@@ -75,7 +77,7 @@ class ExerciseCard extends StatelessWidget {
             Align(
               alignment: Alignment.bottomRight,
               child: Container(
-                padding: const EdgeInsets.all(3),
+                padding: EdgeInsets.all(isSmall ? 2 : 3),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.orange, width: 1.5),
                   shape: BoxShape.circle,
@@ -83,7 +85,7 @@ class ExerciseCard extends StatelessWidget {
                 child: Icon(
                   Icons.check,
                   color: Colors.orange,
-                  size: 12,
+                  size: isSmall ? 10 : 12,
                 ),
               ),
             ),
