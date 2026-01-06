@@ -18,6 +18,7 @@ class SettingsScreen extends StatelessWidget {
   final VoidCallback onLogout;
   final VoidCallback? onEditPlan;
   final VoidCallback? onChangePassword;
+  final VoidCallback? onEditProfile;
 
   const SettingsScreen({
     super.key,
@@ -25,6 +26,7 @@ class SettingsScreen extends StatelessWidget {
     required this.onLogout,
     this.onEditPlan,
     this.onChangePassword,
+    this.onEditProfile,
   });
 
   // ==========================================
@@ -32,81 +34,64 @@ class SettingsScreen extends StatelessWidget {
   // ==========================================
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
+    final padding = isSmall ? 16.0 : 20.0;
+
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(padding),
       child: Column(
         children: [
-          _buildTitle(),
-          const SizedBox(height: 32),
-          _buildProfileButton(context),
-          const SizedBox(height: 12),
-          _buildEditPlanButton(context),
-          const SizedBox(height: 12),
-          _buildChangePasswordButton(context),
-          const SizedBox(height: 12),
-          _buildLogoutButton(context),
+          // Title
+          Text(
+            'Setting',
+            style: TextStyle(
+              fontSize: isSmall ? 20 : 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.orange,
+            ),
+          ),
+          SizedBox(height: isSmall ? 24 : 32),
+
+          // Profile Button (Orange - Primary)
+          _buildSettingButton(
+            context: context,
+            icon: Icons.person_outline,
+            label: 'Profile',
+            isPrimary: true,
+            onTap: onEditProfile ?? () => _showProfileDialog(context),
+          ),
+          SizedBox(height: isSmall ? 10 : 12),
+
+          // Edit Plan Button
+          _buildSettingButton(
+            context: context,
+            icon: Icons.edit_note_outlined,
+            label: 'Edit Plan',
+            onTap: onEditPlan ?? () => _showComingSoon(context, 'Edit Plan'),
+          ),
+          SizedBox(height: isSmall ? 10 : 12),
+
+          // Change Password Button
+          _buildSettingButton(
+            context: context,
+            icon: Icons.lock_outline,
+            label: 'Change Password',
+            onTap:
+                onChangePassword ??
+                () => _showComingSoon(context, 'Change Password'),
+          ),
+          SizedBox(height: isSmall ? 10 : 12),
+
+          // Logout Button
+          _buildSettingButton(
+            context: context,
+            icon: Icons.logout_outlined,
+            label: 'Logout',
+            onTap: () => _showLogoutConfirmation(context),
+          ),
         ],
       ),
-    );
-  }
-
-  // ==========================================
-  // BUILD TITLE
-  // ==========================================
-  Widget _buildTitle() {
-    return const Text(
-      'Setting',
-      style: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        color: Colors.orange,
-      ),
-    );
-  }
-
-  // ==========================================
-  // BUILD PROFILE BUTTON
-  // ==========================================
-  Widget _buildProfileButton(BuildContext context) {
-    return _buildSettingButton(
-      icon: Icons.person_outline,
-      label: 'Profile',
-      isPrimary: true,
-      onTap: () => _showProfileDialog(context),
-    );
-  }
-
-  // ==========================================
-  // BUILD EDIT PLAN BUTTON
-  // ==========================================
-  Widget _buildEditPlanButton(BuildContext context) {
-    return _buildSettingButton(
-      icon: Icons.edit_note_outlined,
-      label: 'Edit Plan',
-      onTap: onEditPlan ?? () => _showComingSoon(context, 'Edit Plan'),
-    );
-  }
-
-  // ==========================================
-  // BUILD CHANGE PASSWORD BUTTON
-  // ==========================================
-  Widget _buildChangePasswordButton(BuildContext context) {
-    return _buildSettingButton(
-      icon: Icons.lock_outline,
-      label: 'Change Password',
-      onTap:
-          onChangePassword ?? () => _showComingSoon(context, 'Change Password'),
-    );
-  }
-
-  // ==========================================
-  // BUILD LOGOUT BUTTON
-  // ==========================================
-  Widget _buildLogoutButton(BuildContext context) {
-    return _buildSettingButton(
-      icon: Icons.logout_outlined,
-      label: 'Logout',
-      onTap: () => _showLogoutConfirmation(context),
     );
   }
 
@@ -116,16 +101,23 @@ class SettingsScreen extends StatelessWidget {
   /// Creates a styled button for settings options.
   /// isPrimary = true makes button orange, false makes it grey.
   Widget _buildSettingButton({
+    required BuildContext context,
     required IconData icon,
     required String label,
     bool isPrimary = false,
     required VoidCallback onTap,
   }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        padding: EdgeInsets.symmetric(
+          vertical: isSmall ? 14 : 16, 
+          horizontal: isSmall ? 16 : 20,
+        ),
         decoration: BoxDecoration(
           color: isPrimary ? Colors.orange : Colors.grey[200],
           borderRadius: BorderRadius.circular(12),
@@ -135,13 +127,13 @@ class SettingsScreen extends StatelessWidget {
             Icon(
               icon,
               color: isPrimary ? Colors.white : Colors.black87,
-              size: 24,
+              size: isSmall ? 22 : 24,
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: isSmall ? 12 : 16),
             Text(
               label,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: isSmall ? 14 : 16,
                 fontWeight: FontWeight.w600,
                 color: isPrimary ? Colors.white : Colors.black87,
               ),

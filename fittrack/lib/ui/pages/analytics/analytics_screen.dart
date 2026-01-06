@@ -259,40 +259,42 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   // ==========================================
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
+    final padding = isSmall ? 16.0 : 20.0;
+
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(padding),
       child: Column(
         children: [
-          _buildTitle(),
-          const SizedBox(height: 24),
+          // Title
+          Text(
+            'Analytic',
+            style: TextStyle(
+              fontSize: isSmall ? 20 : 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.orange,
+            ),
+          ),
+          SizedBox(height: isSmall ? 20 : 24),
+
+          // Period Selector (Days/Weeks/Months)
           _buildPeriodSelector(),
-          const SizedBox(height: 24),
-          Expanded(child: _buildChartArea()),
+          SizedBox(height: isSmall ? 20 : 24),
+
+          // Chart
+          Expanded(
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                    ),
+                  )
+                : _buildChart(),
+          ),
         ],
       ),
     );
-  }
-
-  Widget _buildTitle() {
-    return const Text(
-      'Analytic',
-      style: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        color: Colors.orange,
-      ),
-    );
-  }
-
-  Widget _buildChartArea() {
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
-        ),
-      );
-    }
-    return _buildChart();
   }
 
   // ==========================================

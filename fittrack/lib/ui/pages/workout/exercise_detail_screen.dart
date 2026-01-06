@@ -97,6 +97,12 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   // ==========================================
   @override
   Widget build(BuildContext context) {
+    final sets = widget.exercise.getSetsForLevel(widget.userLevel);
+    final reps = widget.exercise.getRepsForLevel(widget.userLevel);
+    final duration = widget.exercise.getDurationForLevel(widget.userLevel);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: _buildAppBar(),
@@ -150,6 +156,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           fontWeight: FontWeight.bold,
           color: Colors.orange[800],
         ),
+        textAlign: TextAlign.center,
       ),
     );
   }

@@ -178,9 +178,9 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
   Widget _buildExerciseGrid() {
     return GridView.builder(
       padding: const EdgeInsets.all(12),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 1.15,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: MediaQuery.of(context).size.width >= 600 ? 3 : 2,
+        childAspectRatio: MediaQuery.of(context).size.width >= 600 ? 1.3 : 1.15,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
       ),
