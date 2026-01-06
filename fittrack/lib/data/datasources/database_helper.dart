@@ -10,7 +10,7 @@ import 'exercise_seeder.dart';
 class DatabaseHelper {
   static Database? _database;
   static const String _dbName = 'fittrack.db';
-  static const int _dbVersion = 1;
+  static const int _dbVersion = 2; // Bumped to reseed exercises with correct image paths
 
   static final DatabaseHelper instance = DatabaseHelper._init();
 
@@ -25,7 +25,20 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, _dbName);
-    return await openDatabase(path, version: _dbVersion, onCreate: _onCreate);
+    return await openDatabase(
+      path,
+      version: _dbVersion,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    // Version 2: Reseed exercises with updated image paths
+    if (oldVersion < 2) {
+      await db.delete('exercises');
+      await _seedExercises(db);
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
