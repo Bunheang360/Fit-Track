@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../services/auth_service.dart';
 import '../../utils/snackbar_utils.dart';
+import '../../utils/responsive_utils.dart';
 import '../assessment/assessment_screen.dart';
 
 class Signup extends StatefulWidget {
@@ -93,10 +94,9 @@ class _SignupState extends State<Signup> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmall = screenWidth < 360;
+    final isSmall = context.isSmallScreen;
     final padding = isSmall ? 20.0 : 30.0;
-    final logoSize = (screenWidth * 0.3).clamp(80.0, 120.0);
+    final logoSize = (context.screenWidth * 0.3).clamp(80.0, 120.0);
 
     return Scaffold(
       backgroundColor: Colors.white,

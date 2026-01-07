@@ -11,7 +11,7 @@ class DatabaseHelper {
   static Database? _database;
   static const String _dbName = 'fittrack.db';
   static const int _dbVersion =
-      2; // Bumped to reseed exercises with correct image paths
+      3; // Bumped to add more exercises (warm-up, core, cool-down)
 
   static final DatabaseHelper instance = DatabaseHelper._init();
 
@@ -37,6 +37,11 @@ class DatabaseHelper {
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     // Version 2: Reseed exercises with updated image paths
     if (oldVersion < 2) {
+      await db.delete('exercises');
+      await _seedExercises(db);
+    }
+    // Version 3: Added more exercises (warm-up, core, cool-down)
+    if (oldVersion < 3) {
       await db.delete('exercises');
       await _seedExercises(db);
     }

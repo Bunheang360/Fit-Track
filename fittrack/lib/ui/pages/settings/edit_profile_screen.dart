@@ -3,6 +3,7 @@ import '../../../core/models/user.dart';
 import '../../../services/user_service.dart';
 import '../../../core/constants/enums.dart';
 import '../../utils/snackbar_utils.dart';
+import '../../utils/responsive_utils.dart';
 import '../../widgets/common/back_button.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -65,9 +66,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       level: _selectedLevel,
     );
 
-    if (result.isSuccess && result.user != null) {
+    if (result.isSuccess && result.data != null) {
       if (mounted) {
-        widget.onSave(result.user!);
+        widget.onSave(result.data!);
         context.showSuccess('Profile updated successfully!');
         Navigator.pop(context);
       }
@@ -82,8 +83,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmall = screenWidth < 360;
+    final isSmall = context.isSmallScreen;
 
     return Scaffold(
       backgroundColor: Colors.white,

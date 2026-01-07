@@ -4,6 +4,7 @@ import '../../../core/models/exercise.dart';
 import '../../../services/workout_service.dart';
 import '../../../services/auth_service.dart';
 import '../../../core/constants/enums.dart';
+import '../../utils/snackbar_utils.dart';
 import '../authentication/login_screen.dart';
 import '../workout/workout_list_screen.dart';
 import '../analytics/analytics_screen.dart';
@@ -188,22 +189,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // SHOW GOAL COMPLETED MESSAGE
   void _showGoalCompletedMessage(String title, int goal) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$title goal ($goal exercises) already completed! 🎉'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    context.showSuccess('$title goal ($goal exercises) already completed! 🎉');
   }
 
   // SHOW NO EXERCISES MESSAGE
   void _showNoExercisesMessage(String title) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('No more $title exercises available.'),
-        backgroundColor: Colors.orange,
-      ),
-    );
+    context.showInfo('No more $title exercises available.');
   }
 
   Future<void> _logout() async {

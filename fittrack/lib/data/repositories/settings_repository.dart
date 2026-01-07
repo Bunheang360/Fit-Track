@@ -1,12 +1,11 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Repository for managing app settings using SharedPreferences.
+/// Handles login state and user session data.
 class SettingsRepository {
   static const String _keyIsLoggedIn = 'isLoggedIn';
   static const String _keyUserId = 'currentUserId';
   static const String _keyUsername = 'currentUsername';
-  static const String _keyThemeMode = 'themeMode';
-  static const String _keyNotificationsEnabled = 'notificationsEnabled';
-  static const String _keyReminderTime = 'reminderTime';
 
   SharedPreferences? _prefs;
 
@@ -68,72 +67,19 @@ class SettingsRepository {
     }
   }
 
-  Future<int> getThemeMode() async {
-    try {
-      final prefs = await _preferences;
-      return prefs.getInt(_keyThemeMode) ?? 0;
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  Future<void> setThemeMode(int mode) async {
-    try {
-      final prefs = await _preferences;
-      await prefs.setInt(_keyThemeMode, mode);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<bool> areNotificationsEnabled() async {
-    try {
-      final prefs = await _preferences;
-      return prefs.getBool(_keyNotificationsEnabled) ?? true;
-    } catch (e) {
-      return true;
-    }
-  }
-
-  Future<void> setNotificationsEnabled(bool enabled) async {
-    try {
-      final prefs = await _preferences;
-      await prefs.setBool(_keyNotificationsEnabled, enabled);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<String?> getReminderTime() async {
-    try {
-      final prefs = await _preferences;
-      return prefs.getString(_keyReminderTime);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Future<void> setReminderTime(String time) async {
-    try {
-      final prefs = await _preferences;
-      await prefs.setString(_keyReminderTime, time);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
+  /// Clears login-related settings only.
   Future<void> clear() async {
     try {
       final prefs = await _preferences;
       await prefs.remove(_keyIsLoggedIn);
       await prefs.remove(_keyUserId);
       await prefs.remove(_keyUsername);
-      // Keep other app settings
     } catch (e) {
       // Silently fail on clear errors
     }
   }
 
+  /// Clears all settings from SharedPreferences.
   Future<void> clearAll() async {
     try {
       final prefs = await _preferences;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive_utils.dart';
 
 class WorkoutSectionCard extends StatelessWidget {
   final String title;
@@ -16,8 +17,7 @@ class WorkoutSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmall = screenWidth < 360;
+    final isSmall = context.isSmallScreen;
 
     return Container(
       padding: EdgeInsets.all(isSmall ? 12 : 16),
