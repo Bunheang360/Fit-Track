@@ -66,9 +66,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       level: _selectedLevel,
     );
 
-    if (result.isSuccess && result.data != null) {
+    if (result.isSuccess && result.user != null) {
       if (mounted) {
-        widget.onSave(result.data!);
+        widget.onSave(result.user!);
         context.showSuccess('Profile updated successfully!');
         Navigator.pop(context);
       }

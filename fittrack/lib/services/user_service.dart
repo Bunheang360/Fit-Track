@@ -1,12 +1,7 @@
-import '../core/models/user.dart';
-import '../core/models/service_result.dart';
-import '../core/utils/validators.dart';
+import '../../core/models/user.dart';
 import '../data/repositories/user_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../core/constants/enums.dart';
-
-/// Type alias for user operations that return a User on success.
-typedef UserResult = ServiceResult<User>;
 
 class UserService {
   final UserRepository _userRepository;
@@ -85,6 +80,13 @@ class UserService {
     return await _userRepository.getUserById(userId);
   }
 
+  // Gets the currently logged-in user.
+  Future<User?> getCurrentUser() async {
+    final userId = await _settingsRepository.getCurrentUserId();
+    if (userId == null) return null;
+    return await _userRepository.getUserById(userId);
+  }
+
   /// UPDATE PROFILE
   // Updates user profile information.
   Future<UserResult> updateProfile({
@@ -98,11 +100,12 @@ class UserService {
   }) async {
     try {
       // Validate
-      final nameError = Validators.validateName(name);
-      if (nameError != null) return UserResult.failure(nameError);
-
-      final emailError = Validators.validateEmail(email);
-      if (emailError != null) return UserResult.failure(emailError);
+      if (name.trim().isEmpty) {
+        return UserResult.failure('Name cannot be empty');
+      }
+      if (email.trim().isEmpty || !email.contains('@')) {
+        return UserResult.failure('Invalid email');
+      }
 
       // Update user
       final updatedUser = currentUser.copyWith(
@@ -153,4 +156,20 @@ class UserService {
       return UserResult.failure('Failed to update plan. Please try again.');
     }
   }
+}
+
+/// USER RESULT
+// Represents the result of a user operation.
+class UserResult {
+  final bool isSuccess;
+  final User? user;
+  final String? errorMessage;
+
+  UserResult._({required this.isSuccess, this.user, this.errorMessage});
+
+  factory UserResult.success(User user) =>
+      UserResult._(isSuccess: true, user: user);
+
+  factory UserResult.failure(String message) =>
+      UserResult._(isSuccess: false, errorMessage: message);
 }
