@@ -67,16 +67,3 @@ A personalized workout tracking app built with Flutter for gym and home fitness 
    ```bash
    flutter run
    ```
-
-### Running Tests
-
-```bash
-# Run all tests
-flutter test
-
-# Run specific test file
-flutter test test/core/utils/validators_test.dart
-
-# Run tests with coverage
-flutter test --coverage
-```
