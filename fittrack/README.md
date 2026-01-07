@@ -1,4 +1,4 @@
-s# FitTrack 💪
+# FitTrack 💪
 
 A personalized workout tracking app built with Flutter for gym and home fitness enthusiasts.
 
@@ -22,7 +22,6 @@ A personalized workout tracking app built with Flutter for gym and home fitness 
 </p>
 <p align="center">
   <img src="screenshots/screenshot_5.png" width="180" />
-  <img src="screenshots/screenshot_6.png" width="180" />
   <img src="screenshots/screenshot_7.png" width="180" />
 </p>
 
