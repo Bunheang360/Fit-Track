@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// Configuration for multi-select options
-/// Uses String for value to keep it simple
+// Configuration for multi-select options
 class MultiSelectOption {
   final String value;
   final String label;
-  final IconData? icon; 
+  final IconData? icon;
 
   const MultiSelectOption({
     required this.value,
@@ -14,14 +13,11 @@ class MultiSelectOption {
   });
 }
 
-/// Display style for multi-select questions
-enum MultiSelectStyle {
-  chips, // For categories (ChoiceChips)
-  grid, // For schedule (grid of boxes)
-}
+// Display style for multi-select questions
+enum MultiSelectStyle { chips, grid }
 
-/// Reusable multi-select question widget
-/// Used for Categories (chips) and Schedule (grid)
+// Reusable multi-select question widget
+// Used for Categories (chips) and Schedule (grid)
 class MultiSelectQuestion extends StatefulWidget {
   final String title;
   final String? subtitle;
@@ -31,7 +27,7 @@ class MultiSelectQuestion extends StatefulWidget {
   final VoidCallback onNext;
   final bool isLastPage;
   final MultiSelectStyle style;
-  final int minSelection; // Minimum required selections
+  final int minSelection;
 
   const MultiSelectQuestion({
     super.key,
@@ -70,7 +66,7 @@ class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
     widget.onValuesChanged(_selectedValues);
   }
 
-  /// Get icon for category based on value name
+  // Get icon for category based on value name
   IconData _getCategoryIcon(String value) {
     switch (value) {
       case 'strength':
@@ -98,7 +94,7 @@ class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
     }
   }
 
-  /// Get icon for day of week
+  // Get icon for day of week
   IconData _getDayIcon(String value) {
     switch (value) {
       case 'monday':
@@ -148,7 +144,10 @@ class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
             SizedBox(height: isSmall ? 6 : 10),
             Text(
               widget.subtitle!,
-              style: TextStyle(fontSize: isSmall ? 14 : 16, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: isSmall ? 14 : 16,
+                color: Colors.grey[600],
+              ),
             ),
           ],
 
@@ -172,7 +171,10 @@ class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
               child: Center(
                 child: Text(
                   '${_selectedValues.length} selected',
-                  style: TextStyle(fontSize: isSmall ? 14 : 16, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: isSmall ? 14 : 16,
+                    color: Colors.grey[600],
+                  ),
                 ),
               ),
             ),
@@ -207,7 +209,7 @@ class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
     );
   }
 
-  /// Chips layout for categories - now with icons
+  // Chips layout for categories - now with icons
   Widget _buildChipsLayout() {
     return Wrap(
       spacing: 12,
@@ -216,7 +218,7 @@ class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
       children: widget.options.map((option) {
         final isSelected = _selectedValues.contains(option.value);
         final icon = option.icon ?? _getCategoryIcon(option.value);
-        
+
         return GestureDetector(
           onTap: () => _toggleSelection(option.value),
           child: AnimatedContainer(
@@ -264,7 +266,7 @@ class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
     );
   }
 
-  /// Grid layout for schedule days - improved with icons
+  // Grid layout for schedule days - improved with icons
   Widget _buildGridLayout() {
     return Wrap(
       spacing: 12,
@@ -273,7 +275,7 @@ class _MultiSelectQuestionState extends State<MultiSelectQuestion> {
       children: widget.options.map((option) {
         final isSelected = _selectedValues.contains(option.value);
         final icon = option.icon ?? _getDayIcon(option.value);
-        
+
         return GestureDetector(
           onTap: () => _toggleSelection(option.value),
           child: AnimatedContainer(

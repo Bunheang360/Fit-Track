@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/exercise.dart';
-import '../../../data/models/exercise_session.dart';
-import '../../../data/repositories/session_repository.dart';
+import '../../../core/models/exercise.dart';
+import '../../../services/workout_service.dart';
 import '../../../core/constants/enums.dart';
 import '../../widgets/common/back_button.dart';
 
@@ -24,66 +23,54 @@ class ExerciseDetailScreen extends StatefulWidget {
 }
 
 class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
-  // ==========================================
-  // STATE VARIABLES
-  // ==========================================
-  /// Flag to prevent multiple submissions when user taps Done button
+  // Service for workout operations
+  final _workoutService = WorkoutService();
+
+  /// STATE VARIABLES
+  // Flag to prevent multiple submissions when user taps Done button
   bool _isCompleting = false;
 
-  // ==========================================
-  // HANDLE DONE BUTTON
-  // ==========================================
-  /// When user taps Done, save session to database and go back.
+  /// HANDLE DONE BUTTON
+  // When user taps Done, save session to database and go back.
   Future<void> _handleDone() async {
-    // Step 1: Check if already completing (prevent double tap)
+    // 1: Check if already completing (prevent double tap)
     if (_isCompleting) return;
 
-    // Step 2: Show loading state
+    // 2: Show loading state
     setState(() {
       _isCompleting = true;
     });
 
     try {
-      // Step 3: Create and save session
+      // 3: Create and save session
       await _saveExerciseSession();
 
-      // Step 4: Notify parent and go back
+      // 4: Notify parent and go back
       widget.onDone();
       _goBack();
     } catch (e) {
-      // Step 5: If error, reset loading state
+      // 5: If error, reset loading state
       _resetLoadingState();
     }
   }
 
-  // ==========================================
-  // SAVE EXERCISE SESSION TO DATABASE
-  // ==========================================
+  // SAVE EXERCISE SESSION VIA SERVICE
   Future<void> _saveExerciseSession() async {
-    final session = ExerciseSession(
+    await _workoutService.completeExercise(
       userId: widget.userId,
-      exerciseId: widget.exercise.id,
-      date: DateTime.now(),
-      setsCompleted: widget.exercise.getSetsForLevel(widget.userLevel),
-      repsCompleted: widget.exercise.getRepsForLevel(widget.userLevel),
-      durationSeconds: widget.exercise.getDurationForLevel(widget.userLevel),
+      exercise: widget.exercise,
+      userLevel: widget.userLevel,
     );
-
-    await SessionRepository().saveSession(session);
   }
 
-  // ==========================================
   // GO BACK TO PREVIOUS SCREEN
-  // ==========================================
   void _goBack() {
     if (mounted) {
       Navigator.pop(context);
     }
   }
 
-  // ==========================================
   // RESET LOADING STATE (ON ERROR)
-  // ==========================================
   void _resetLoadingState() {
     if (mounted) {
       setState(() {
@@ -92,17 +79,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     }
   }
 
-  // ==========================================
-  // BUILD UI
-  // ==========================================
   @override
   Widget build(BuildContext context) {
-    final sets = widget.exercise.getSetsForLevel(widget.userLevel);
-    final reps = widget.exercise.getRepsForLevel(widget.userLevel);
-    final duration = widget.exercise.getDurationForLevel(widget.userLevel);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmall = screenWidth < 360;
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: _buildAppBar(),
@@ -111,9 +89,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
-  // ==========================================
-  // BUILD APP BAR
-  // ==========================================
+  // APP BAR
   AppBar _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.white,
@@ -123,9 +99,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
-  // ==========================================
-  // BUILD BODY
-  // ==========================================
+  // BODY
   Widget _buildBody() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -144,9 +118,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
-  // ==========================================
-  // BUILD EXERCISE NAME
-  // ==========================================
+  // EXERCISE NAME
   Widget _buildExerciseName() {
     return Center(
       child: Text(
@@ -161,21 +133,19 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
-  // ==========================================
-  // BUILD EXERCISE IMAGE
-  // ==========================================
+  // EXERCISE IMAGE
   Widget _buildExerciseImage() {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmall = screenWidth < 360;
     final isLandscape = screenWidth > screenHeight;
-    
+
     // Responsive height based on screen size
     final imageHeight = isLandscape
         ? screenHeight * 0.35
         : isSmall
-            ? screenHeight * 0.2
-            : screenHeight * 0.25;
+        ? screenHeight * 0.2
+        : screenHeight * 0.25;
 
     return Container(
       height: imageHeight.clamp(150.0, 300.0),
@@ -203,9 +173,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
-  // ==========================================
-  // BUILD INSTRUCTIONS LIST
-  // ==========================================
+  // INSTRUCTIONS LIST
   Widget _buildInstructions() {
     List<Widget> instructionWidgets = [];
 
@@ -252,9 +220,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
-  // ==========================================
-  // BUILD EXERCISE DETAILS (SETS, REPS, DURATION)
-  // ==========================================
+  // EXERCISE DETAILS (SETS, REPS, DURATION)
   Widget _buildExerciseDetails() {
     final sets = widget.exercise.getSetsForLevel(widget.userLevel);
     final reps = widget.exercise.getRepsForLevel(widget.userLevel);
@@ -281,9 +247,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
-  // ==========================================
-  // BUILD DONE BUTTON
-  // ==========================================
+  // DONE BUTTON
   Widget _buildDoneButton() {
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -302,24 +266,19 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
-  // ==========================================
-  // BUILD LOADING INDICATOR
-  // ==========================================
+  Widget _buildDoneText() {
+    return const Text(
+      'Done',
+      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+    );
+  }
+
+  // LOADING INDICATOR
   Widget _buildLoadingIndicator() {
     return const SizedBox(
       height: 20,
       width: 20,
       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-    );
-  }
-
-  // ==========================================
-  // BUILD DONE TEXT
-  // ==========================================
-  Widget _buildDoneText() {
-    return const Text(
-      'Done',
-      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
     );
   }
 }

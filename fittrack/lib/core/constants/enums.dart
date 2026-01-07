@@ -134,17 +134,6 @@ extension LevelExtension on Level {
   }
 }
 
-extension GenderExtension on Gender {
-  String get displayName {
-    switch (this) {
-      case Gender.male:
-        return 'Male';
-      case Gender.female:
-        return 'Female';
-    }
-  }
-}
-
 extension DayOfWeekExtension on DayOfWeek {
   String get displayName {
     switch (this) {

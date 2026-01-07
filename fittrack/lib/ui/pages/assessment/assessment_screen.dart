@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
 import 'question_screen.dart';
 
-// ============================================================================
-// ASSESSMENT INTRO SCREEN (Frame 4)
-// ============================================================================
 /// This screen appears after signup, before the assessment questions.
-/// It shows a motivational message and lets user start the assessment.
 class AssessmentIntroScreen extends StatelessWidget {
-  // ==========================================
-  // CONSTRUCTOR PARAMETERS
-  // ==========================================
-  /// User credentials passed from signup screen
+  // User credentials passed from signup screen
   final String username;
   final String email;
   final String password;
@@ -22,9 +15,21 @@ class AssessmentIntroScreen extends StatelessWidget {
     required this.password,
   });
 
-  // ==========================================
-  // BUILD UI
-  // ==========================================
+
+  /// NAVIGATE TO QUESTIONS
+  void _goToQuestions(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AssessmentQuestionsScreen(
+          username: username,
+          email: email,
+          password: password,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,9 +44,7 @@ class AssessmentIntroScreen extends StatelessWidget {
     );
   }
 
-  // ==========================================
   // BUILD BACKGROUND IMAGE
-  // ==========================================
   Widget _buildBackgroundImage() {
     return Image.asset(
       'assets/images/gym_pic.jpg',
@@ -61,9 +64,7 @@ class AssessmentIntroScreen extends StatelessWidget {
     );
   }
 
-  // ==========================================
   // BUILD DARK OVERLAY
-  // ==========================================
   Widget _buildDarkOverlay() {
     return Container(
       decoration: BoxDecoration(
@@ -79,9 +80,7 @@ class AssessmentIntroScreen extends StatelessWidget {
     );
   }
 
-  // ==========================================
-  // BUILD CONTENT
-  // ==========================================
+  // CONTENT
   Widget _buildContent(BuildContext context) {
     return SafeArea(
       child: Padding(
@@ -102,9 +101,7 @@ class AssessmentIntroScreen extends StatelessWidget {
     );
   }
 
-  // ==========================================
-  // BUILD TITLE
-  // ==========================================
+  // TITLE
   Widget _buildTitle() {
     return const Text(
       "LET'S GET RIPPED\nAND JACKED",
@@ -118,9 +115,7 @@ class AssessmentIntroScreen extends StatelessWidget {
     );
   }
 
-  // ==========================================
-  // BUILD SUBTITLE
-  // ==========================================
+  // SUBTITLE
   Widget _buildSubtitle() {
     return Text(
       'Personalized workouts and progress\ntracking to help you reach your goals.',
@@ -128,9 +123,7 @@ class AssessmentIntroScreen extends StatelessWidget {
     );
   }
 
-  // ==========================================
-  // BUILD ASSESSMENT BUTTON
-  // ==========================================
+  // ASSESSMENT BUTTON
   Widget _buildAssessmentButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
@@ -153,19 +146,4 @@ class AssessmentIntroScreen extends StatelessWidget {
     );
   }
 
-  // ==========================================
-  // NAVIGATE TO QUESTIONS
-  // ==========================================
-  void _goToQuestions(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AssessmentQuestionsScreen(
-          username: username,
-          email: email,
-          password: password,
-        ),
-      ),
-    );
-  }
 }

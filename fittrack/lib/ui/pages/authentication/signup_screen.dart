@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../data/repositories/user_repository.dart';
+import '../../../services/auth_service.dart';
+import '../../utils/snackbar_utils.dart';
 import '../assessment/assessment_screen.dart';
-
-/// ============================================
-/// SIGNUP SCREEN
-/// ============================================
-/// This screen allows new users to register with:
-/// 1. Username
-/// 2. Email
-/// 3. Password
-/// 4. Confirm Password
-/// ============================================
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -20,9 +11,7 @@ class Signup extends StatefulWidget {
 }
 
 class _SignupState extends State<Signup> {
-  // ==========================================
   // FORM CONTROLLERS
-  // ==========================================
   final _formKey = GlobalKey<FormState>();
   final _focusNodeEmail = FocusNode();
   final _focusNodePassword = FocusNode();
@@ -33,15 +22,74 @@ class _SignupState extends State<Signup> {
   final _controllerPassword = TextEditingController();
   final _controllerConfirmPassword = TextEditingController();
 
-  // ==========================================
   // STATE VARIABLES
-  // ==========================================
   bool _hidePassword = true; // Toggle password visibility
 
-  // ==========================================
-  // REPOSITORIES (for database access)
-  // ==========================================
-  final _userRepository = UserRepository();
+  // SERVICE
+  final _authService = AuthService();
+
+  // REGISTER LOGIC
+  Future<void> _handleRegister() async {
+    // 1: Validate form fields
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+
+    // 2: Check if username already exists via service
+    final username = _controllerUsername.text;
+    final isAvailable = await _authService.isUsernameAvailable(username);
+
+    if (!isAvailable) {
+      _showError('Username is already registered');
+      return;
+    }
+
+    // 3: Go to assessment screen
+    _goToAssessment();
+  }
+
+  // NAVIGATE TO ASSESSMENT
+  void _goToAssessment() {
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AssessmentIntroScreen(
+            username: _controllerUsername.text,
+            email: _controllerEmail.text,
+            password: _controllerPassword.text,
+          ),
+        ),
+      );
+    }
+  }
+
+  // SHOW ERROR MESSAGE
+  void _showError(String message) {
+    if (mounted) {
+      context.showError(message);
+    }
+  }
+
+  // TOGGLE PASSWORD VISIBILITY
+  void _togglePasswordVisibility() {
+    setState(() {
+      _hidePassword = !_hidePassword;
+    });
+  }
+
+  // CLEANUP
+  @override
+  void dispose() {
+    _focusNodeEmail.dispose();
+    _focusNodePassword.dispose();
+    _focusNodeConfirmPassword.dispose();
+    _controllerUsername.dispose();
+    _controllerEmail.dispose();
+    _controllerPassword.dispose();
+    _controllerConfirmPassword.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -308,87 +356,5 @@ class _SignupState extends State<Signup> {
         ),
       ),
     );
-  }
-
-  // ==========================================
-  // REGISTER LOGIC
-  // ==========================================
-  Future<void> _handleRegister() async {
-    // Step 1: Validate form fields
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      return;
-    }
-
-    // Step 2: Check if username already exists
-    final username = _controllerUsername.text;
-    final usernameExists = await _userRepository.usernameExists(username);
-
-    if (usernameExists) {
-      _showError('Username is already registered');
-      return;
-    }
-
-    // Step 3: Go to assessment screen
-    _goToAssessment();
-  }
-
-  // ==========================================
-  // NAVIGATE TO ASSESSMENT
-  // ==========================================
-  void _goToAssessment() {
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => AssessmentIntroScreen(
-            username: _controllerUsername.text,
-            email: _controllerEmail.text,
-            password: _controllerPassword.text,
-          ),
-        ),
-      );
-    }
-  }
-
-  // ==========================================
-  // SHOW ERROR MESSAGE
-  // ==========================================
-  void _showError(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message, style: const TextStyle(color: Colors.white)),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-    }
-  }
-
-  // ==========================================
-  // TOGGLE PASSWORD VISIBILITY
-  // ==========================================
-  void _togglePasswordVisibility() {
-    setState(() {
-      _hidePassword = !_hidePassword;
-    });
-  }
-
-  // ==========================================
-  // CLEANUP
-  // ==========================================
-  @override
-  void dispose() {
-    _focusNodeEmail.dispose();
-    _focusNodePassword.dispose();
-    _focusNodeConfirmPassword.dispose();
-    _controllerUsername.dispose();
-    _controllerEmail.dispose();
-    _controllerPassword.dispose();
-    _controllerConfirmPassword.dispose();
-    super.dispose();
   }
 }

@@ -1,4 +1,4 @@
-import '../models/exercise.dart';
+import '../../core/models/exercise.dart';
 import '../../core/constants/enums.dart';
 
 class ExerciseSeeder {
@@ -374,7 +374,11 @@ class ExerciseSeeder {
         name: "Reverse Lunges",
         description: "Backward stepping lunge variation",
         imageUrl: "assets/images/reverse_lunges.jpg",
-        categories: [Categories.strength, Categories.balance, Categories.getFit],
+        categories: [
+          Categories.strength,
+          Categories.balance,
+          Categories.getFit,
+        ],
         plan: Plan.home,
         bodyTarget: BodyTarget.lowerBody,
         sectionType: WorkoutType.mainWorkout,
@@ -519,7 +523,11 @@ class ExerciseSeeder {
         name: "Box Jumps",
         description: "Explosive plyometric exercise",
         imageUrl: "assets/images/box_jumps.jpg",
-        categories: [Categories.cardio, Categories.strength, Categories.loseFat],
+        categories: [
+          Categories.cardio,
+          Categories.strength,
+          Categories.loseFat,
+        ],
         plan: Plan.home,
         bodyTarget: BodyTarget.lowerBody,
         sectionType: WorkoutType.mainWorkout,
@@ -538,7 +546,11 @@ class ExerciseSeeder {
         name: "Jumping Lunges",
         description: "Explosive lower body cardio",
         imageUrl: "assets/images/jump_lunges.jpg",
-        categories: [Categories.cardio, Categories.strength, Categories.loseFat],
+        categories: [
+          Categories.cardio,
+          Categories.strength,
+          Categories.loseFat,
+        ],
         plan: Plan.home,
         bodyTarget: BodyTarget.lowerBody,
         sectionType: WorkoutType.mainWorkout,
@@ -557,7 +569,11 @@ class ExerciseSeeder {
         name: "High Knee Sprints",
         description: "Intense cardio sprint drill",
         imageUrl: "assets/images/high_knee_sprints.jpg",
-        categories: [Categories.cardio, Categories.loseFat, Categories.endurance],
+        categories: [
+          Categories.cardio,
+          Categories.loseFat,
+          Categories.endurance,
+        ],
         plan: Plan.home,
         bodyTarget: BodyTarget.fullBody,
         sectionType: WorkoutType.mainWorkout,

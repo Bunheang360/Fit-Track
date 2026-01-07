@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Configuration for a single select option
-/// Uses String for value to keep it simple
+// for a single select option
 class SelectOption {
   final String value;
   final String label;
@@ -16,8 +15,8 @@ class SelectOption {
   });
 }
 
-/// Reusable single-select question widget for String-based choices
-/// Used for Gender, Level, Plan selections
+// Reusable single-select question widget for String-based choices
+// Used for Gender, Level, Plan selections
 class SingleSelectQuestion extends StatefulWidget {
   final String title;
   final String? subtitle;
@@ -26,7 +25,7 @@ class SingleSelectQuestion extends StatefulWidget {
   final Function(String) onValueChanged;
   final VoidCallback onNext;
   final bool isLastPage;
-  final bool showDescription; // For card-style options like Plan
+  final bool showDescription;
 
   const SingleSelectQuestion({
     super.key,
@@ -144,7 +143,7 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
     );
   }
 
-  /// Simple option button (Gender, Level)
+  // Simple option button (Gender, Level)
   Widget _buildSimpleOption(SelectOption option, bool isSelected) {
     return GestureDetector(
       onTap: () => _onOptionSelected(option.value),
@@ -197,7 +196,7 @@ class _SingleSelectQuestionState extends State<SingleSelectQuestion> {
     );
   }
 
-  /// Card option with description (Plan)
+  // Card option with description (Plan)
   Widget _buildCardOption(SelectOption option, bool isSelected) {
     return GestureDetector(
       onTap: () => _onOptionSelected(option.value),

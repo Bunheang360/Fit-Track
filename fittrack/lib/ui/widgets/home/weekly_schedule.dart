@@ -40,7 +40,15 @@ class WeeklySchedule extends StatelessWidget {
               final dayEnum = DayOfWeek.values[index];
               final isSelected = selectedDays.contains(dayEnum);
               final isToday = today == dayNumber;
-              final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+              final dayNames = [
+                'Mon',
+                'Tue',
+                'Wed',
+                'Thu',
+                'Fri',
+                'Sat',
+                'Sun',
+              ];
 
               return Expanded(
                 child: Container(
@@ -60,7 +68,9 @@ class WeeklySchedule extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      isSmall ? dayNames[index].substring(0, 1) : dayNames[index],
+                      isSmall
+                          ? dayNames[index].substring(0, 1)
+                          : dayNames[index],
                       style: TextStyle(
                         fontSize: dayFontSize,
                         fontWeight: FontWeight.w600,

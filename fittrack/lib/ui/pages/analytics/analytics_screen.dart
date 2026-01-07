@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/exercise_session.dart';
-import '../../../data/models/user.dart';
-import '../../../data/repositories/session_repository.dart';
-import '../../../data/repositories/user_repository.dart';
+import '../../../services/analytics_service.dart';
 import '../../../core/constants/enums.dart';
 
 /// Shows workout statistics with Days/Weeks/Months filter
@@ -16,28 +13,20 @@ class AnalyticsScreen extends StatefulWidget {
 }
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
-  // Database access
-  final SessionRepository _sessionRepository = SessionRepository();
-  final UserRepository _userRepository = UserRepository();
+  // Service for analytics business logic
+  final AnalyticsService _analyticsService = AnalyticsService();
 
   // Current filter selection (Days, Weeks, or Months)
   AnalyticsPeriod _selectedPeriod = AnalyticsPeriod.days;
 
-  // All workout sessions for this user
-  List<ExerciseSession> _sessions = [];
-
-  // User registration date
-  DateTime? _userRegistrationDate;
+  // Analytics data loaded from service
+  AnalyticsData? _analyticsData;
 
   // Loading state
   bool _isLoading = true;
 
-  // Chart data: label (e.g., "Mon") -> workout count
-  List<String> _chartLabels = [];
-  List<int> _chartValues = [];
-
-  // Total exercises done in selected period
-  int _totalExercises = 0;
+  // Chart data
+  ChartData? _chartData;
 
   // Scroll controller for horizontal scrolling
   final ScrollController _scrollController = ScrollController();
@@ -54,23 +43,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     super.dispose();
   }
 
-  // ==========================================
-  // STEP 1: Load user and sessions from database
-  // ==========================================
+  /// 1: Load analytics data via service
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
     try {
-      // Load user to get registration date
-      final user = await _userRepository.getUserById(widget.userId);
-      _userRegistrationDate = user?.createdAt ?? DateTime.now();
-
-      // Load sessions
-      _sessions = await _sessionRepository.getSessionsForUser(widget.userId);
+      _analyticsData = await _analyticsService.loadAnalyticsData(widget.userId);
       _updateChartData();
       setState(() => _isLoading = false);
-
-      // Scroll to end for weeks/months to show latest data
       _scrollToEnd();
     } catch (e) {
       setState(() => _isLoading = false);
@@ -90,9 +70,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     });
   }
 
-  // ==========================================
-  // STEP 2: Update chart when period changes
-  // ==========================================
+  /// 2: Update chart when period changes
   void _onPeriodChanged(AnalyticsPeriod newPeriod) {
     setState(() {
       _selectedPeriod = newPeriod;
@@ -101,162 +79,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     _scrollToEnd();
   }
 
-  // ==========================================
-  // STEP 3: Calculate chart data based on period
-  // ==========================================
+  /// 3: Calculate chart data via service
   void _updateChartData() {
-    // Clear old data
-    _chartLabels = [];
-    _chartValues = [];
+    if (_analyticsData == null) return;
 
-    // Fill data based on selected period
-    switch (_selectedPeriod) {
-      case AnalyticsPeriod.days:
-        _calculateDailyData();
-        break;
-      case AnalyticsPeriod.weeks:
-        _calculateWeeklyData();
-        break;
-      case AnalyticsPeriod.months:
-        _calculateMonthlyData();
-        break;
-    }
-
-    // Calculate total
-    _totalExercises = _chartValues.fold(0, (sum, val) => sum + val);
-  }
-
-  // ==========================================
-  // Calculate data for each day of current week (calendar style)
-  // ==========================================
-  void _calculateDailyData() {
-    final now = DateTime.now();
-    final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-    // Find Monday of this week
-    final monday = now.subtract(Duration(days: now.weekday - 1));
-
-    // Loop through each day (Mon to Sun)
-    for (int i = 0; i < 7; i++) {
-      final day = monday.add(Duration(days: i));
-      final count = _countSessionsOnDate(day);
-
-      _chartLabels.add(dayNames[i]);
-      _chartValues.add(count);
-    }
-  }
-
-  // ==========================================
-  // Calculate data starting from registration week (Week 1)
-  // ==========================================
-  void _calculateWeeklyData() {
-    final now = DateTime.now();
-    final regDate = _userRegistrationDate ?? now;
-
-    // Find Monday of registration week (Week 1)
-    final regMonday = regDate.subtract(Duration(days: regDate.weekday - 1));
-    final week1Start = DateTime(regMonday.year, regMonday.month, regMonday.day);
-
-    // Find Monday of current week
-    final currentMonday = now.subtract(Duration(days: now.weekday - 1));
-    final currentWeekStart = DateTime(
-      currentMonday.year,
-      currentMonday.month,
-      currentMonday.day,
+    _chartData = _analyticsService.calculateChartData(
+      data: _analyticsData!,
+      period: _selectedPeriod,
     );
-
-    // Calculate number of weeks since registration
-    final daysDiff = currentWeekStart.difference(week1Start).inDays;
-    final totalWeeks = (daysDiff / 7).floor() + 1;
-
-    // Generate data for each week
-    for (int week = 0; week < totalWeeks; week++) {
-      final weekStart = week1Start.add(Duration(days: week * 7));
-      final weekEnd = weekStart.add(const Duration(days: 7));
-      final count = _countSessionsInRange(weekStart, weekEnd);
-
-      _chartLabels.add('W${week + 1}');
-      _chartValues.add(count);
-    }
   }
 
-  // ==========================================
-  // Calculate data starting from registration month
-  // ==========================================
-  void _calculateMonthlyData() {
-    final now = DateTime.now();
-    final regDate = _userRegistrationDate ?? now;
-    final monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-
-    // Start from registration month
-    int startYear = regDate.year;
-    int startMonth = regDate.month;
-
-    // End at current month
-    int endYear = now.year;
-    int endMonth = now.month;
-
-    // Calculate total months
-    int totalMonths = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
-
-    // Generate data for each month
-    for (int i = 0; i < totalMonths; i++) {
-      int year = startYear + ((startMonth - 1 + i) ~/ 12);
-      int month = ((startMonth - 1 + i) % 12) + 1;
-
-      final monthStart = DateTime(year, month, 1);
-      final monthEnd = DateTime(year, month + 1, 1);
-      final count = _countSessionsInRange(monthStart, monthEnd);
-
-      // Show year if different from current year
-      if (year != now.year) {
-        _chartLabels.add("${monthNames[month - 1]}\n'${year % 100}");
-      } else {
-        _chartLabels.add(monthNames[month - 1]);
-      }
-      _chartValues.add(count);
-    }
-  }
-
-  // ==========================================
-  // Helper: Count sessions on a specific date
-  // ==========================================
-  int _countSessionsOnDate(DateTime date) {
-    final dayStart = DateTime(date.year, date.month, date.day);
-    final dayEnd = dayStart.add(const Duration(days: 1));
-    return _countSessionsInRange(dayStart, dayEnd);
-  }
-
-  // ==========================================
-  // Helper: Count sessions between two dates
-  // ==========================================
-  int _countSessionsInRange(DateTime start, DateTime end) {
-    int count = 0;
-    for (final session in _sessions) {
-      if (session.date.isAfter(start.subtract(const Duration(seconds: 1))) &&
-          session.date.isBefore(end)) {
-        count++;
-      }
-    }
-    return count;
-  }
-
-  // ==========================================
-  // BUILD UI
-  // ==========================================
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -297,9 +129,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  // ==========================================
-  // Period Selector (Days/Weeks/Months tabs)
-  // ==========================================
+  /// Period Selector (Days/Weeks/Months tabs)
   Widget _buildPeriodSelector() {
     return Container(
       padding: const EdgeInsets.all(4),
@@ -343,16 +173,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  // ==========================================
-  // Chart Display - Bar Graph Style
-  // ==========================================
+  /// Chart Display - Bar Graph Style
   Widget _buildChart() {
-    final maxValue = _findMaxValue();
+    final values = _chartData?.values ?? [];
+    final totalExercises = _chartData?.totalExercises ?? 0;
+    final maxValue = _chartData?.maxValue ?? 0;
     final chartMax = maxValue == 0 ? 5 : (maxValue + 2);
 
     // Days view is fixed width, weeks/months are scrollable
     final isScrollable = _selectedPeriod != AnalyticsPeriod.days;
-    final barCount = _chartValues.length;
+    final barCount = values.length;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -402,7 +232,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  'Total: $_totalExercises',
+                  'Total: $totalExercises',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -451,26 +281,17 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   String _getPeriodDescription() {
+    final values = _chartData?.values ?? [];
     switch (_selectedPeriod) {
       case AnalyticsPeriod.days:
         return 'This week';
       case AnalyticsPeriod.weeks:
-        final weeks = _chartValues.length;
+        final weeks = values.length;
         return 'Since you joined ($weeks ${weeks == 1 ? 'week' : 'weeks'})';
       case AnalyticsPeriod.months:
-        final months = _chartValues.length;
+        final months = values.length;
         return 'Since you joined ($months ${months == 1 ? 'month' : 'months'})';
     }
-  }
-
-  // Find the highest value in chart data
-  int _findMaxValue() {
-    if (_chartValues.isEmpty) return 1;
-    int max = _chartValues[0];
-    for (final value in _chartValues) {
-      if (value > max) max = value;
-    }
-    return max;
   }
 
   Widget _buildYAxisLabels(int maxValue) {
@@ -490,6 +311,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   // Fixed bar chart for days (always 7 bars)
   Widget _buildFixedBarChart(int maxValue) {
+    final values = _chartData?.values ?? [];
     return LayoutBuilder(
       builder: (context, constraints) {
         return Column(
@@ -498,12 +320,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.end,
-                children: List.generate(_chartValues.length, (index) {
+                children: List.generate(values.length, (index) {
                   return _buildBar(
                     index,
                     maxValue,
                     constraints.maxHeight,
-                    width: (constraints.maxWidth / _chartValues.length) - 8,
+                    width: (constraints.maxWidth / values.length) - 8,
                   );
                 }),
               ),
@@ -571,7 +393,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     double maxHeight, {
     required double width,
   }) {
-    final value = _chartValues[index];
+    final values = _chartData?.values ?? [];
+    final value = index < values.length ? values[index] : 0;
     final barHeight = maxValue > 0
         ? (value / maxValue) *
               (maxHeight - 30) // Leave space for value label
@@ -586,7 +409,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final isCurrent =
         (_selectedPeriod == AnalyticsPeriod.weeks ||
             _selectedPeriod == AnalyticsPeriod.months) &&
-        index == _chartValues.length - 1;
+        index == values.length - 1;
 
     return SizedBox(
       width: width,
@@ -644,15 +467,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Widget _buildFixedXAxisLabels() {
+    final labels = _chartData?.labels ?? [];
     final now = DateTime.now();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: List.generate(_chartLabels.length, (index) {
+      children: List.generate(labels.length, (index) {
         final isToday =
             _selectedPeriod == AnalyticsPeriod.days && index == now.weekday - 1;
         return Expanded(
           child: Text(
-            _chartLabels[index],
+            labels[index],
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 11,
@@ -666,14 +490,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Widget _buildScrollableXAxisLabels(double barWidth) {
+    final labels = _chartData?.labels ?? [];
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: List.generate(_chartLabels.length, (index) {
-        final isCurrent = index == _chartLabels.length - 1;
+      children: List.generate(labels.length, (index) {
+        final isCurrent = index == labels.length - 1;
         return SizedBox(
           width: barWidth,
           child: Text(
-            _chartLabels[index],
+            labels[index],
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 10,

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/user.dart';
-import '../../../data/models/exercise.dart';
-import '../../../data/repositories/user_repository.dart';
-import '../../../data/repositories/exercise_repository.dart';
-import '../../../data/repositories/settings_repository.dart';
-import '../../../data/repositories/session_repository.dart';
+import '../../../core/models/user.dart';
+import '../../../core/models/exercise.dart';
+import '../../../services/workout_service.dart';
+import '../../../services/auth_service.dart';
 import '../../../core/constants/enums.dart';
 import '../authentication/login_screen.dart';
 import '../workout/workout_list_screen.dart';
@@ -26,26 +24,21 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // ==========================================
-  // REPOSITORIES (for database access)
-  // ==========================================
-  final _userRepository = UserRepository();
-  final _exerciseRepository = ExerciseRepository();
-  final _settingsRepository = SettingsRepository();
-  final _sessionRepository = SessionRepository();
+  // SERVICES
+  final _workoutService = WorkoutService();
+  final _authService = AuthService();
 
-  // ==========================================
   // STATE VARIABLES
-  // ==========================================
-  User? _currentUser; // The logged-in user's data
-  WorkoutPlan? _workoutPlan; // Today's workout exercises
-  bool _isLoading = true; // Shows loading spinner when true
-  NavTab _selectedTab = NavTab.home; // Current bottom nav tab
+  User? _currentUser;
+  WorkoutPlan? _workoutPlan;
+  bool _isLoading = true;
+  NavTab _selectedTab = NavTab.home;
+  bool _isWorkoutDay = true;
 
   // Track which exercises have been completed today
   // Using Set<String> ensures no duplicates (each exercise ID only once)
-  final Set<String> _completedWarmupIds = {};
-  final Set<String> _completedMainWorkoutIds = {};
+  Set<String> _completedWarmupIds = {};
+  Set<String> _completedMainWorkoutIds = {};
 
   @override
   void initState() {
@@ -53,37 +46,25 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadUserData();
   }
 
-  // ==========================================
-  // LOAD USER DATA FROM DATABASE
-  // ==========================================
+  // LOAD USER DATA VIA SERVICE
   Future<void> _loadUserData() async {
     try {
       setState(() => _isLoading = true);
 
-      // Step 1: Get the current user's ID from settings
-      final userId = await _settingsRepository.getCurrentUserId();
-      if (userId == null) {
-        _logout(); // No user ID means not logged in
+      // Load all home screen data through service
+      final data = await _workoutService.loadHomeScreenData();
+
+      if (data == null) {
+        _logout();
         return;
       }
 
-      // Step 2: Get the user's full data from database
-      final user = await _userRepository.getUserById(userId);
-      if (user == null) {
-        _logout(); // User not found in database
-        return;
-      }
-
-      // Step 3: Get the workout plan based on user's preferences
-      final workoutPlan = await _exerciseRepository.getWorkoutPlanForUser(user);
-
-      // Step 4: Load today's completed exercises from database
-      await _loadTodaysProgress(userId, workoutPlan);
-
-      // Step 5: Update the screen with loaded data
       setState(() {
-        _currentUser = user;
-        _workoutPlan = workoutPlan;
+        _currentUser = data.user;
+        _workoutPlan = data.workoutPlan;
+        _completedWarmupIds = data.completedWarmupIds;
+        _completedMainWorkoutIds = data.completedMainWorkoutIds;
+        _isWorkoutDay = data.isWorkoutDay;
         _isLoading = false;
       });
     } catch (e) {
@@ -91,47 +72,142 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // ==========================================
-  // LOAD TODAY'S COMPLETED EXERCISES
-  // ==========================================
-  /// This method loads exercises the user already completed today.
-  /// This ensures progress is saved even if user logs out and back in.
-  Future<void> _loadTodaysProgress(
-    String userId,
-    WorkoutPlan? workoutPlan,
-  ) async {
-    if (workoutPlan == null) return;
+  void _navigateToEditProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfileScreen(
+          user: _currentUser!,
+          onSave: (updatedUser) {
+            setState(() {
+              _currentUser = updatedUser;
+            });
+          },
+        ),
+      ),
+    );
+  }
 
-    // Step 1: Get all exercise sessions from today
-    final todaySessions = await _sessionRepository.getTodaySessions(userId);
+  void _navigateToEditPlan() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPlanScreen(
+          user: _currentUser!,
+          onSave: (updatedUser) {
+            setState(() {
+              _currentUser = updatedUser;
+            });
+            // Reload workout plan with updated categories
+            _loadUserData();
+          },
+        ),
+      ),
+    );
+  }
 
-    // Step 2: Create lists of warmup and main workout exercise IDs
-    List<String> warmupIds = [];
-    for (final exercise in workoutPlan.warmupExercises) {
-      warmupIds.add(exercise.id);
+  void _navigateToChangePassword() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChangePasswordScreen(
+          user: _currentUser!,
+          onPasswordChanged: (updatedUser) {
+            setState(() {
+              _currentUser = updatedUser;
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  /// NAVIGATE TO WORKOUT LIST
+  // Opens the workout list screen for warmup or main workout.
+  // Only shows exercises that haven't been completed yet today.
+  // Checks if goal is already reached before navigating.
+  void _navigateToWorkoutList(String title, List<Exercise> exercises) {
+    // Get goal and completed count based on workout type
+    final isWarmup = title == 'Warm Up';
+    final completedIds = isWarmup
+        ? _completedWarmupIds
+        : _completedMainWorkoutIds;
+    final goal = isWarmup
+        ? WorkoutPlan.warmupGoal
+        : WorkoutPlan.mainWorkoutGoal;
+    final completedCount = completedIds.length;
+
+    // Check if goal is already reached
+    if (completedCount >= goal) {
+      _showGoalCompletedMessage(title, goal);
+      return;
     }
 
-    List<String> mainIds = [];
-    for (final exercise in workoutPlan.mainExercises) {
-      mainIds.add(exercise.id);
+    // Filter out completed exercises
+    final remainingExercises = exercises
+        .where((e) => !completedIds.contains(e.id))
+        .toList();
+
+    // Calculate how many more exercises needed
+    final exercisesNeeded = goal - completedCount;
+
+    // If no remaining exercises available
+    if (remainingExercises.isEmpty) {
+      _showNoExercisesMessage(title);
+      return;
     }
 
-    // Step 3: Clear old completed data
-    _completedWarmupIds.clear();
-    _completedMainWorkoutIds.clear();
+    // Navigate to workout list with info about remaining goal
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WorkoutListScreen(
+          title: title,
+          exercises: remainingExercises,
+          userLevel: _currentUser!.selectedLevel,
+          userId: _currentUser!.id,
+          onExerciseCompleted: (exercise) =>
+              _onExerciseCompleted(title, exercise),
+          goalRemaining: exercisesNeeded, // Pass remaining goal
+          goalTotal: goal, // Pass total goal
+        ),
+      ),
+    );
+  }
 
-    // Step 4: Check each session and mark as completed
-    for (final session in todaySessions) {
-      if (warmupIds.contains(session.exerciseId)) {
-        _completedWarmupIds.add(session.exerciseId);
-      } else if (mainIds.contains(session.exerciseId)) {
-        _completedMainWorkoutIds.add(session.exerciseId);
+  // HANDLE EXERCISE COMPLETION
+  void _onExerciseCompleted(String workoutType, Exercise exercise) {
+    setState(() {
+      if (workoutType == 'Warm Up') {
+        _completedWarmupIds.add(exercise.id);
+      } else {
+        _completedMainWorkoutIds.add(exercise.id);
       }
-    }
+    });
+  }
+
+  // SHOW GOAL COMPLETED MESSAGE
+  void _showGoalCompletedMessage(String title, int goal) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$title goal ($goal exercises) already completed! 🎉'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  // SHOW NO EXERCISES MESSAGE
+  void _showNoExercisesMessage(String title) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('No more $title exercises available.'),
+        backgroundColor: Colors.orange,
+      ),
+    );
   }
 
   Future<void> _logout() async {
-    await _settingsRepository.setLoggedOut();
+    await _authService.logout();
     if (mounted) {
       Navigator.pushReplacement(
         context,
@@ -187,72 +263,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _navigateToEditProfile() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditProfileScreen(
-          user: _currentUser!,
-          onSave: (updatedUser) {
-            setState(() {
-              _currentUser = updatedUser;
-            });
-          },
-        ),
-      ),
-    );
-  }
-
-  void _navigateToEditPlan() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditPlanScreen(
-          user: _currentUser!,
-          onSave: (updatedUser) {
-            setState(() {
-              _currentUser = updatedUser;
-            });
-            // Reload workout plan with updated categories
-            _loadUserData();
-          },
-        ),
-      ),
-    );
-  }
-
-  void _navigateToChangePassword() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChangePasswordScreen(
-          user: _currentUser!,
-          onPasswordChanged: (updatedUser) {
-            setState(() {
-              _currentUser = updatedUser;
-            });
-          },
-        ),
-      ),
-    );
-  }
-
-  /// Check if today is a workout day for the user
-  bool _isTodayWorkoutDay() {
-    final now = DateTime.now();
-    // Convert DateTime weekday (1=Monday, 7=Sunday) to DayOfWeek enum
-    final todayIndex = now.weekday - 1; // 0=Monday, 6=Sunday
-    final today = DayOfWeek.values[todayIndex];
-    return _currentUser!.selectedDays.contains(today);
-  }
-
-  /// Main Home Page (Frame 2)
   Widget _buildHomePage() {
     final user = _currentUser!;
     final plan = _workoutPlan;
     final warmupCount = plan?.warmupExercises.length ?? 0;
     final mainCount = plan?.mainExercises.length ?? 0;
-    final isWorkoutDay = _isTodayWorkoutDay();
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmall = screenWidth < 360;
     final padding = isSmall ? 16.0 : 20.0;
@@ -267,7 +282,10 @@ class _HomeScreenState extends State<HomeScreen> {
           // Greeting
           RichText(
             text: TextSpan(
-              style: TextStyle(fontSize: isSmall ? 20 : 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: isSmall ? 20 : 24,
+                fontWeight: FontWeight.bold,
+              ),
               children: [
                 const TextSpan(
                   text: 'Hello ',
@@ -295,21 +313,21 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: EdgeInsets.all(isSmall ? 10 : 12),
             decoration: BoxDecoration(
-              color: isWorkoutDay ? Colors.grey[100] : Colors.blue[50],
+              color: _isWorkoutDay ? Colors.grey[100] : Colors.blue[50],
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              isWorkoutDay
+              _isWorkoutDay
                   ? "Hello friends! Let's get you going with this workout today"
                   : "Today is your rest day! Take it easy and recover.",
               style: TextStyle(
                 fontSize: isSmall ? 12 : 14,
-                color: isWorkoutDay ? Colors.black87 : Colors.blue[800],
+                color: _isWorkoutDay ? Colors.black87 : Colors.blue[800],
               ),
             ),
           ),
           SizedBox(height: isSmall ? 20 : 24),
-          if (isWorkoutDay) ...[
+          if (_isWorkoutDay) ...[
             _buildTodaysProgressSection(warmupCount, mainCount),
             SizedBox(height: isSmall ? 20 : 24),
             WorkoutSectionCard(
@@ -339,7 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Widget shown on rest days
+  // Widget shown on rest days
   Widget _buildRestDayContent() {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -384,20 +402,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Get the name of the next workout day
+  // Get the name of the next workout day
   String _getNextWorkoutDay() {
-    final now = DateTime.now();
-    final todayIndex = now.weekday - 1;
-
-    // Check next 7 days for workout
-    for (int i = 1; i <= 7; i++) {
-      final checkIndex = (todayIndex + i) % 7;
-      final checkDay = DayOfWeek.values[checkIndex];
-      if (_currentUser!.selectedDays.contains(checkDay)) {
-        return checkDay.name[0].toUpperCase() + checkDay.name.substring(1);
-      }
-    }
-    return 'Not scheduled';
+    return _workoutService.getNextWorkoutDay(_currentUser!);
   }
 
   Widget _buildHeader() {
@@ -442,40 +449,63 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildTodaysProgressSection(int warmupCount, int mainCount) {
-    // Calculate completed counts from sets (not exceeding total)
-    final warmupCompleted = _completedWarmupIds.length;
-    final mainCompleted = _completedMainWorkoutIds.length;
-
-    final warmupRemaining = warmupCount > 0
-        ? (warmupCount - warmupCompleted) * 2
-        : 0;
-    final mainRemaining = mainCount > 0 ? (mainCount - mainCompleted) * 5 : 0;
+    // Use goal-based progress from workout service
+    final data = HomeScreenData(
+      user: _currentUser!,
+      workoutPlan: _workoutPlan!,
+      completedWarmupIds: _completedWarmupIds,
+      completedMainWorkoutIds: _completedMainWorkoutIds,
+      isWorkoutDay: _isWorkoutDay,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        RichText(
-          text: const TextSpan(
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            children: [
-              TextSpan(
-                text: "Today's ",
-                style: TextStyle(color: Colors.black),
+        // Header with body target indicator
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            RichText(
+              text: const TextSpan(
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                children: [
+                  TextSpan(
+                    text: "Today's ",
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  TextSpan(
+                    text: 'Progress',
+                    style: TextStyle(color: Colors.orange),
+                  ),
+                  TextSpan(
+                    text: ' and ',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  TextSpan(
+                    text: 'Plan',
+                    style: TextStyle(color: Colors.green),
+                  ),
+                ],
               ),
-              TextSpan(
-                text: 'Progress',
-                style: TextStyle(color: Colors.orange),
+            ),
+            // Body target badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
               ),
-              TextSpan(
-                text: ' and ',
-                style: TextStyle(color: Colors.black),
+              child: Text(
+                data.todaysBodyTarget,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.orange,
+                ),
               ),
-              TextSpan(
-                text: 'Plan',
-                style: TextStyle(color: Colors.green),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         Row(
@@ -483,9 +513,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: ProgressCircle(
                 title: 'Warm up',
-                completed: warmupCompleted,
-                total: warmupCount,
-                remainingMin: warmupRemaining,
+                completed: data.warmupCompleted,
+                total: data.warmupGoal, // Use goal instead of total available
+                remainingMin: data.warmupRemainingMinutes,
                 color: Colors.orange,
               ),
             ),
@@ -493,84 +523,43 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: ProgressCircle(
                 title: 'Main Workout',
-                completed: mainCompleted,
-                total: mainCount,
-                remainingMin: mainRemaining,
+                completed: data.mainWorkoutCompleted,
+                total:
+                    data.mainWorkoutGoal, // Use goal instead of total available
+                remainingMin: data.mainWorkoutRemainingMinutes,
                 color: Colors.blue,
               ),
             ),
           ],
         ),
+        // Show completion status
+        if (data.isDailyGoalComplete) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.check_circle, color: Colors.green, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  "Daily goals complete! Great job! 🎉",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
-    );
-  }
-
-  // ==========================================
-  // NAVIGATE TO WORKOUT LIST
-  // ==========================================
-  /// Opens the workout list screen for warmup or main workout.
-  /// Only shows exercises that haven't been completed yet today.
-  void _navigateToWorkoutList(String title, List<Exercise> exercises) {
-    // Step 1: Get completed exercise IDs based on workout type
-    Set<String> completedIds;
-    if (title == 'Warm Up') {
-      completedIds = _completedWarmupIds;
-    } else {
-      completedIds = _completedMainWorkoutIds;
-    }
-
-    // Step 2: Filter out completed exercises
-    List<Exercise> remainingExercises = [];
-    for (final exercise in exercises) {
-      if (!completedIds.contains(exercise.id)) {
-        remainingExercises.add(exercise);
-      }
-    }
-
-    // Step 3: If all done, show message and return
-    if (remainingExercises.isEmpty) {
-      _showCompletedMessage(title);
-      return;
-    }
-
-    // Step 4: Navigate to workout list
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => WorkoutListScreen(
-          title: title,
-          exercises: remainingExercises,
-          userLevel: _currentUser!.selectedLevel,
-          userId: _currentUser!.id,
-          onExerciseCompleted: (exercise) =>
-              _onExerciseCompleted(title, exercise),
-        ),
-      ),
-    );
-  }
-
-  // ==========================================
-  // HANDLE EXERCISE COMPLETION
-  // ==========================================
-  void _onExerciseCompleted(String workoutType, Exercise exercise) {
-    setState(() {
-      if (workoutType == 'Warm Up') {
-        _completedWarmupIds.add(exercise.id);
-      } else {
-        _completedMainWorkoutIds.add(exercise.id);
-      }
-    });
-  }
-
-  // ==========================================
-  // SHOW COMPLETED MESSAGE
-  // ==========================================
-  void _showCompletedMessage(String title) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$title already completed!'),
-        backgroundColor: Colors.green,
-      ),
     );
   }
 }

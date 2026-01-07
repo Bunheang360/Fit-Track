@@ -17,9 +17,7 @@ class BottomNavBar extends StatelessWidget {
     final isSmall = screenWidth < 360;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.orange,
-      ),
+      decoration: const BoxDecoration(color: Colors.orange),
       child: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: isSmall ? 6 : 8),
@@ -27,8 +25,18 @@ class BottomNavBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(NavTab.home, Icons.home, 'Home', isSmall),
-              _buildNavItem(NavTab.analytics, Icons.analytics, 'Analytic', isSmall),
-              _buildNavItem(NavTab.settings, Icons.settings, 'Setting', isSmall),
+              _buildNavItem(
+                NavTab.analytics,
+                Icons.analytics,
+                'Analytic',
+                isSmall,
+              ),
+              _buildNavItem(
+                NavTab.settings,
+                Icons.settings,
+                'Setting',
+                isSmall,
+              ),
             ],
           ),
         ),

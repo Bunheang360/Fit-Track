@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Reusable orange back button used across workout screens
+// Reusable orange back button used across workout screens
 class OrangeBackButton extends StatelessWidget {
   final VoidCallback? onPressed;
 

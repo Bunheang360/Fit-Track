@@ -50,7 +50,10 @@ class WorkoutSectionCard extends StatelessWidget {
                 ),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: isSmall ? 10 : 12, color: Colors.grey[500]),
+                  style: TextStyle(
+                    fontSize: isSmall ? 10 : 12,
+                    color: Colors.grey[500],
+                  ),
                 ),
               ],
             ),
@@ -60,7 +63,7 @@ class WorkoutSectionCard extends StatelessWidget {
               backgroundColor: Colors.orange,
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(
-                horizontal: isSmall ? 14 : 20, 
+                horizontal: isSmall ? 14 : 20,
                 vertical: isSmall ? 8 : 10,
               ),
               shape: RoundedRectangleBorder(
@@ -71,7 +74,10 @@ class WorkoutSectionCard extends StatelessWidget {
             onPressed: onStart,
             child: Text(
               'Start',
-              style: TextStyle(fontSize: isSmall ? 12 : 14, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: isSmall ? 12 : 14,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

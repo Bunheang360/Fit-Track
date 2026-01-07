@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-// ====================
-// 3. PLAN CARD (for Home/Gym selection)
-// ====================
+// PLAN CARD (for Home/Gym selection)
 class PlanCard extends StatelessWidget {
   final String title;
   final String description;

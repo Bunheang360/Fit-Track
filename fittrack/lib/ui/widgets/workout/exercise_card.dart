@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/exercise.dart';
+import '../../../core/models/exercise.dart';
 import '../../../core/constants/enums.dart';
-
-/// ============================================
-/// EXERCISE CARD
-/// ============================================
-/// A compact card showing exercise info in a grid.
-/// Displays: name, duration, sets, and reps.
-/// ============================================
 
 class ExerciseCard extends StatelessWidget {
   final Exercise exercise;
@@ -54,41 +47,33 @@ class ExerciseCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             SizedBox(height: isSmall ? 4 : 6),
-            
+
             // Duration
             Text(
               'Duration: ${duration > 0 ? "${duration}s" : "7-10 min"}',
-              style: TextStyle(fontSize: isSmall ? 9 : 10, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: isSmall ? 9 : 10,
+                color: Colors.grey[600],
+              ),
             ),
             // Amount (sets)
             Text(
               'Amount: $sets sets',
-              style: TextStyle(fontSize: isSmall ? 9 : 10, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: isSmall ? 9 : 10,
+                color: Colors.grey[600],
+              ),
             ),
             // Reps per set
             Text(
               '1 set = $reps reps/times',
-              style: TextStyle(fontSize: isSmall ? 9 : 10, color: Colors.grey[600]),
-            ),
-            
-            const Spacer(),
-            
-            // Checkmark icon at bottom right
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Container(
-                padding: EdgeInsets.all(isSmall ? 2 : 3),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.orange, width: 1.5),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check,
-                  color: Colors.orange,
-                  size: isSmall ? 10 : 12,
-                ),
+              style: TextStyle(
+                fontSize: isSmall ? 9 : 10,
+                color: Colors.grey[600],
               ),
             ),
+
+            const Spacer(),
           ],
         ),
       ),

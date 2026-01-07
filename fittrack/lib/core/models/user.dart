@@ -82,4 +82,41 @@ class User {
           : DateTime.now(),
     );
   }
+
+  /// Creates a copy of this User with the given fields replaced.
+  User copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? password,
+    int? age,
+    Gender? gender,
+    double? weight,
+    double? height,
+    Plan? selectedPlan,
+    Level? selectedLevel,
+    List<Categories>? selectedCategories,
+    List<DayOfWeek>? selectedDays,
+    bool? hasCompletedAssessment,
+    DateTime? createdAt,
+  }) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      password: password ?? this.password,
+      age: age ?? this.age,
+      gender: gender ?? this.gender,
+      weight: weight ?? this.weight,
+      height: height ?? this.height,
+      selectedPlan: selectedPlan ?? this.selectedPlan,
+      selectedLevel: selectedLevel ?? this.selectedLevel,
+      selectedCategories:
+          selectedCategories ?? List.from(this.selectedCategories),
+      selectedDays: selectedDays ?? List.from(this.selectedDays),
+      hasCompletedAssessment:
+          hasCompletedAssessment ?? this.hasCompletedAssessment,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Reusable slider question widget for numeric values (age, weight, height)
-/// Uses double for all numeric values to keep it simple
+// Reusable slider question widget for numeric values (age, weight, height)
 class SliderQuestion extends StatefulWidget {
   final String title;
   final double initialValue;
@@ -9,7 +8,7 @@ class SliderQuestion extends StatefulWidget {
   final double maxValue;
   final int? divisions;
   final String unit;
-  final bool showAsInteger; // If true, display as whole number (for age)
+  final bool showAsInteger;
   final Function(double) onValueChanged;
   final VoidCallback onNext;
   final bool isLastPage;
@@ -113,8 +112,12 @@ class _SliderQuestionState extends State<SliderQuestion> {
                         elevation: 4.0,
                       ),
                       overlayColor: Colors.orange.withOpacity(0.2),
-                      overlayShape: RoundSliderOverlayShape(overlayRadius: isSmall ? 24.0 : 28.0),
-                      tickMarkShape: const RoundSliderTickMarkShape(tickMarkRadius: 0),
+                      overlayShape: RoundSliderOverlayShape(
+                        overlayRadius: isSmall ? 24.0 : 28.0,
+                      ),
+                      tickMarkShape: const RoundSliderTickMarkShape(
+                        tickMarkRadius: 0,
+                      ),
                     ),
                     child: Slider(
                       value: _currentValue,
@@ -129,7 +132,10 @@ class _SliderQuestionState extends State<SliderQuestion> {
                   // Helper text
                   Text(
                     'Slide to select',
-                    style: TextStyle(fontSize: isSmall ? 14 : 16, color: Colors.grey[500]),
+                    style: TextStyle(
+                      fontSize: isSmall ? 14 : 16,
+                      color: Colors.grey[500],
+                    ),
                   ),
                 ],
               ),
