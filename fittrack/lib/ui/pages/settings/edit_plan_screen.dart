@@ -56,9 +56,9 @@ class _EditPlanScreenState extends State<EditPlanScreen> {
     );
 
     // 3: Handle result
-    if (result.isSuccess && result.user != null) {
+    if (result.isSuccess && result.data != null) {
       if (mounted) {
-        widget.onSave(result.user!);
+        widget.onSave(result.data!);
         context.showSuccess('Plan updated successfully!');
         Navigator.pop(context);
       }

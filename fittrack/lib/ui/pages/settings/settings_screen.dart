@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/models/user.dart';
+import '../../utils/responsive_utils.dart';
 
 class SettingsScreen extends StatelessWidget {
   // CONSTRUCTOR PARAMETERS
@@ -46,8 +47,7 @@ class SettingsScreen extends StatelessWidget {
   // BUILD UI
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmall = screenWidth < 360;
+    final isSmall = context.isSmallScreen;
     final padding = isSmall ? 16.0 : 20.0;
 
     return Padding(
@@ -114,8 +114,7 @@ class SettingsScreen extends StatelessWidget {
     bool isPrimary = false,
     required VoidCallback onTap,
   }) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmall = screenWidth < 360;
+    final isSmall = context.isSmallScreen;
 
     return GestureDetector(
       onTap: onTap,

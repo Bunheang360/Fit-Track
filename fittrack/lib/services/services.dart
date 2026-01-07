@@ -1,4 +1,4 @@
-/// Service Layer Exports
+// Service Layer Exports
 // This file provides a single point of import for all services.
 // Usage: import 'package:fittrack/services/services.dart';
 

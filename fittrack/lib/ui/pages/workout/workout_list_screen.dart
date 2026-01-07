@@ -3,6 +3,7 @@ import '../../../core/models/exercise.dart';
 import '../../../core/constants/enums.dart';
 import '../../widgets/workout/exercise_card.dart';
 import '../../widgets/common/back_button.dart';
+import '../../utils/snackbar_utils.dart';
 import 'exercise_detail_screen.dart';
 
 class WorkoutListScreen extends StatefulWidget {
@@ -77,13 +78,7 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
 
   // SHOW GOAL REACHED MESSAGE AND GO BACK
   void _showGoalReachedAndGoBack() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${widget.title} goal reached! 🎉 Great job!'),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    context.showSuccess('${widget.title} goal reached! 🎉 Great job!');
 
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) Navigator.pop(context);
@@ -92,13 +87,7 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
 
   // SHOW COMPLETION MESSAGE AND GO BACK
   void _showCompletionAndGoBack() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${widget.title} completed! Great job!'),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    context.showSuccess('${widget.title} completed! Great job!');
 
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) Navigator.pop(context);

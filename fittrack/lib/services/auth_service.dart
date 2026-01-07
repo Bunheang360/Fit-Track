@@ -1,6 +1,11 @@
-import '../../core/models/user.dart';
+import '../core/models/user.dart';
+import '../core/models/service_result.dart';
+import '../core/utils/validators.dart';
 import '../data/repositories/user_repository.dart';
 import '../data/repositories/settings_repository.dart';
+
+/// Type alias for auth operations that return a User on success.
+typedef AuthResult = ServiceResult<User>;
 
 class AuthService {
   final UserRepository _userRepository;
@@ -93,25 +98,12 @@ class AuthService {
     required String password,
     required String confirmPassword,
   }) {
-    if (username.trim().isEmpty) {
-      return 'Username cannot be empty';
-    }
-    if (email.trim().isEmpty) {
-      return 'Email cannot be empty';
-    }
-    if (!email.contains('@') || !email.contains('.')) {
-      return 'Invalid email format';
-    }
-    if (password.isEmpty) {
-      return 'Password cannot be empty';
-    }
-    if (password.length < 8) {
-      return 'Password must be at least 8 characters';
-    }
-    if (password != confirmPassword) {
-      return 'Passwords do not match';
-    }
-    return null; // Valid
+    return Validators.validateRegistration(
+      username: username,
+      email: email,
+      password: password,
+      confirmPassword: confirmPassword,
+    );
   }
 
   /// PASSWORD MANAGEMENT
@@ -135,8 +127,9 @@ class AuthService {
       }
 
       // Validate new password
-      if (newPassword.length < 8) {
-        return AuthResult.failure('New password must be at least 8 characters');
+      final passwordError = Validators.validatePassword(newPassword);
+      if (passwordError != null) {
+        return AuthResult.failure(passwordError);
       }
 
       // Update password
@@ -148,20 +141,4 @@ class AuthService {
       return AuthResult.failure('Failed to change password. Please try again.');
     }
   }
-}
-
-/// AUTH RESULT
-// Represents the result of an authentication operation.
-class AuthResult {
-  final bool isSuccess;
-  final User? user;
-  final String? errorMessage;
-
-  AuthResult._({required this.isSuccess, this.user, this.errorMessage});
-
-  factory AuthResult.success(User user) =>
-      AuthResult._(isSuccess: true, user: user);
-
-  factory AuthResult.failure(String message) =>
-      AuthResult._(isSuccess: false, errorMessage: message);
 }

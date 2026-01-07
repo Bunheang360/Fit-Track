@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/models/exercise.dart';
 import '../../../core/constants/enums.dart';
+import '../../utils/responsive_utils.dart';
 
 class ExerciseCard extends StatelessWidget {
   final Exercise exercise;
@@ -20,8 +21,7 @@ class ExerciseCard extends StatelessWidget {
     final sets = exercise.getSetsForLevel(userLevel);
     final reps = exercise.getRepsForLevel(userLevel);
     final duration = exercise.getDurationForLevel(userLevel);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmall = screenWidth < 360;
+    final isSmall = context.isSmallScreen;
 
     return GestureDetector(
       onTap: onTap,
