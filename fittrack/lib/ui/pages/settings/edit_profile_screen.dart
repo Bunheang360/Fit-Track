@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/user.dart';
-import '../../../data/repositories/user_repository.dart';
+import '../../../core/models/user.dart';
+import '../../../services/user_service.dart';
 import '../../../core/constants/enums.dart';
+import '../../utils/snackbar_utils.dart';
 import '../../widgets/common/back_button.dart';
 
-/// Edit Profile Screen
-/// Allows users to edit their personal details like name, email, age, weight, height
 class EditProfileScreen extends StatefulWidget {
   final User user;
   final Function(User) onSave;
@@ -21,7 +20,7 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _userRepository = UserRepository();
+  final _userService = UserService();
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _nameController;
@@ -56,47 +55,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     setState(() => _isSaving = true);
 
-    try {
-      final updatedUser = User(
-        id: widget.user.id,
-        name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        password: widget.user.password,
-        age: _age,
-        gender: widget.user.gender,
-        weight: _weight,
-        height: _height,
-        selectedPlan: widget.user.selectedPlan,
-        selectedLevel: _selectedLevel,
-        selectedCategories: widget.user.selectedCategories,
-        selectedDays: widget.user.selectedDays,
-        hasCompletedAssessment: widget.user.hasCompletedAssessment,
-      );
+    final result = await _userService.updateProfile(
+      currentUser: widget.user,
+      name: _nameController.text,
+      email: _emailController.text,
+      age: _age,
+      weight: _weight,
+      height: _height,
+      level: _selectedLevel,
+    );
 
-      await _userRepository.saveUser(updatedUser);
-
+    if (result.isSuccess && result.user != null) {
       if (mounted) {
-        widget.onSave(updatedUser);
-        _showSuccess('Profile updated successfully!');
+        widget.onSave(result.user!);
+        context.showSuccess('Profile updated successfully!');
         Navigator.pop(context);
       }
-    } catch (e) {
-      _showError('Failed to save profile. Please try again.');
-    } finally {
-      if (mounted) setState(() => _isSaving = false);
+    } else {
+      if (mounted) {
+        context.showError(result.errorMessage ?? 'Failed to save profile');
+      }
     }
-  }
 
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
-  }
-
-  void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
-    );
+    if (mounted) setState(() => _isSaving = false);
   }
 
   @override
@@ -321,8 +302,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       level == Level.beginner
                           ? Icons.star_border
                           : level == Level.intermediate
-                              ? Icons.star_half
-                              : Icons.star,
+                          ? Icons.star_half
+                          : Icons.star,
                       color: isSelected ? Colors.white : Colors.orange[800],
                       size: isSmall ? 20 : 24,
                     ),

@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
-import '../models/exercise_session.dart';
-import '../datasources/database_helper.dart';
+import '../../core/models/exercise_session.dart';
+import '../database/database_helper.dart';
 
 class SessionRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;

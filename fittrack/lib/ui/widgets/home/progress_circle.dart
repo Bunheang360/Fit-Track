@@ -59,13 +59,19 @@ class ProgressCircle extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             title,
-            style: TextStyle(fontSize: screenWidth < 360 ? 12 : 14, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: screenWidth < 360 ? 12 : 14,
+              fontWeight: FontWeight.w600,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           Text(
             '$remainingMin min remaining',
-            style: TextStyle(fontSize: screenWidth < 360 ? 10 : 12, color: Colors.grey[500]),
+            style: TextStyle(
+              fontSize: screenWidth < 360 ? 10 : 12,
+              color: Colors.grey[500],
+            ),
           ),
         ],
       ),

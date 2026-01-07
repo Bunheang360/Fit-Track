@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-// ====================
-// 2. OPTION BUTTON (for Gender, Level, etc.)
-// ====================
+// OPTION BUTTON (for Gender, Level, etc.)
 class OptionButton extends StatelessWidget {
   final String label;
   final IconData icon;

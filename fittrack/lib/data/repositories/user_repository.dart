@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
-import '../models/user.dart';
-import '../datasources/database_helper.dart';
+import '../../core/models/user.dart';
+import '../database/database_helper.dart';
 
 class UserRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -18,7 +18,6 @@ class UserRepository {
   }
 
   Future<void> saveUser(User user) async {
-    _validateUser(user);
     final db = await _db;
     final existingUser = await getUserById(user.id);
 
@@ -89,30 +88,5 @@ class UserRepository {
     if (username.trim().isEmpty) return false;
     final user = await getUserByUsername(username);
     return user != null;
-  }
-
-  Future<User?> validateLogin(String username, String password) async {
-    try {
-      final user = await getUserByUsername(username);
-      if (user == null || user.password != password) return null;
-      return user;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  void _validateUser(User user) {
-    if (user.name.trim().isEmpty) {
-      throw Exception('Username cannot be empty');
-    }
-    if (user.email.trim().isEmpty) {
-      throw Exception('Email cannot be empty');
-    }
-    if (user.selectedCategories.isEmpty) {
-      throw Exception('At least one category must be selected');
-    }
-    if (user.selectedDays.isEmpty) {
-      throw Exception('At least one workout day must be selected');
-    }
   }
 }

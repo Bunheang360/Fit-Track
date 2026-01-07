@@ -1,16 +1,8 @@
-import 'package:fittrack/data/repositories/settings_repository.dart';
-import 'package:fittrack/data/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
+import '../../../services/auth_service.dart';
+import '../../utils/snackbar_utils.dart';
 import 'signup_screen.dart';
 import '../home/home_screen.dart';
-
-/// ============================================
-/// LOGIN SCREEN
-/// ============================================
-/// This screen allows users to login with:
-/// 1. Username
-/// 2. Password
-/// ============================================
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -20,24 +12,81 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  // ==========================================
-  // FORM CONTROLLERS
-  // ==========================================
+  /// FORM CONTROLLERS
   final _formKey = GlobalKey<FormState>();
   final _focusNodePassword = FocusNode();
   final _controllerUsername = TextEditingController();
   final _controllerPassword = TextEditingController();
 
-  // ==========================================
   // STATE VARIABLES
-  // ==========================================
   bool _hidePassword = true; // Toggle password visibility
 
-  // ==========================================
-  // REPOSITORIES (for database access)
-  // ==========================================
-  final _userRepository = UserRepository();
-  final _settingsRepository = SettingsRepository();
+  // SERVICE (for business logic)
+  final _authService = AuthService();
+
+  // LOGIN LOGIC
+  Future<void> _handleLogin() async {
+    // 1: Validate form fields
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+
+    // 2: Get username and password from text fields
+    final username = _controllerUsername.text;
+    final password = _controllerPassword.text;
+
+    // 3: Attempt login via service
+    final result = await _authService.login(username, password);
+
+    // 4: Handle login result
+    if (result.isSuccess) {
+      _onLoginSuccess();
+    } else {
+      _onLoginFailed(result.errorMessage ?? 'Login failed');
+    }
+  }
+
+  // LOGIN SUCCESS - Navigate to home
+  void _onLoginSuccess() {
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    }
+  }
+
+  // LOGIN FAILED - Show error message
+  void _onLoginFailed(String message) {
+    if (mounted) {
+      context.showError(message);
+    }
+  }
+
+  // TOGGLE PASSWORD VISIBILITY
+  void _togglePasswordVisibility() {
+    setState(() {
+      _hidePassword = !_hidePassword;
+    });
+  }
+
+  // NAVIGATE TO SIGNUP
+  void _goToSignup() {
+    _formKey.currentState?.reset();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const Signup()),
+    );
+  }
+
+  // CLEANUP
+  @override
+  void dispose() {
+    _focusNodePassword.dispose();
+    _controllerUsername.dispose();
+    _controllerPassword.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -213,97 +262,5 @@ class _LoginState extends State<Login> {
         ),
       ),
     );
-  }
-
-  // ==========================================
-  // LOGIN LOGIC
-  // ==========================================
-  Future<void> _handleLogin() async {
-    // Step 1: Validate form fields
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      return;
-    }
-
-    // Step 2: Get username and password from text fields
-    final username = _controllerUsername.text;
-    final password = _controllerPassword.text;
-
-    // Step 3: Check if user exists in database
-    final user = await _userRepository.validateLogin(username, password);
-
-    // Step 4: Handle login result
-    if (user != null) {
-      _onLoginSuccess(user);
-    } else {
-      _onLoginFailed();
-    }
-  }
-
-  // ==========================================
-  // LOGIN SUCCESS - Save session and go to home
-  // ==========================================
-  Future<void> _onLoginSuccess(user) async {
-    // Save login state to remember user
-    await _settingsRepository.setLoggedIn(user.id, user.name);
-
-    // Navigate to Home screen
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
-    }
-  }
-
-  // ==========================================
-  // LOGIN FAILED - Show error message
-  // ==========================================
-  void _onLoginFailed() {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Invalid username or password',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-    }
-  }
-
-  // ==========================================
-  // TOGGLE PASSWORD VISIBILITY
-  // ==========================================
-  void _togglePasswordVisibility() {
-    setState(() {
-      _hidePassword = !_hidePassword;
-    });
-  }
-
-  // ==========================================
-  // NAVIGATE TO SIGNUP
-  // ==========================================
-  void _goToSignup() {
-    _formKey.currentState?.reset();
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const Signup()),
-    );
-  }
-
-  // ==========================================
-  // CLEANUP
-  // ==========================================
-  @override
-  void dispose() {
-    _focusNodePassword.dispose();
-    _controllerUsername.dispose();
-    _controllerPassword.dispose();
-    super.dispose();
   }
 }

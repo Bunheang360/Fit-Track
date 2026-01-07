@@ -1,8 +1,8 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/user.dart';
-import '../models/exercise.dart';
-import '../models/exercise_session.dart';
+import '../../core/models/user.dart';
+import '../../core/models/exercise.dart';
+import '../../core/models/exercise_session.dart';
 import '../../core/constants/enums.dart'
     show Gender, Plan, Level, Categories, DayOfWeek, WorkoutType, BodyTarget;
 import 'exercise_seeder.dart';
@@ -10,7 +10,8 @@ import 'exercise_seeder.dart';
 class DatabaseHelper {
   static Database? _database;
   static const String _dbName = 'fittrack.db';
-  static const int _dbVersion = 2; // Bumped to reseed exercises with correct image paths
+  static const int _dbVersion =
+      2; // Bumped to reseed exercises with correct image paths
 
   static final DatabaseHelper instance = DatabaseHelper._init();
 
@@ -128,7 +129,7 @@ class DatabaseHelper {
     }
   }
 
-  // ─── Mapping Utilities (public for repositories) ───
+  // Mapping Utilities (public for repositories)
 
   Map<String, dynamic> userToMap(User user) => {
     'id': user.id,

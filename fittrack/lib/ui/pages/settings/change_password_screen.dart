@@ -1,17 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/user.dart';
-import '../../../data/repositories/user_repository.dart';
+import '../../../core/models/user.dart';
+import '../../../services/auth_service.dart';
+import '../../utils/snackbar_utils.dart';
 import '../../widgets/common/back_button.dart';
-
-/// ============================================
-/// CHANGE PASSWORD SCREEN
-/// ============================================
-/// This screen allows users to change their password.
-/// It requires:
-/// 1. Current password (for verification)
-/// 2. New password
-/// 3. Confirm new password
-/// ============================================
 
 class ChangePasswordScreen extends StatefulWidget {
   // The current user data
@@ -31,31 +22,25 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
-  // Repository to save user data to database
-  final _userRepository = UserRepository();
+  // Service for authentication operations
+  final _authService = AuthService();
 
   // Form key for validation
   final _formKey = GlobalKey<FormState>();
 
-  // ==========================================
   // TEXT CONTROLLERS
-  // ==========================================
   // These controllers hold the text input values
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  // ==========================================
   // STATE VARIABLES
-  // ==========================================
   bool _isSaving = false;
   bool _showCurrentPassword = false;
   bool _showNewPassword = false;
   bool _showConfirmPassword = false;
 
-  // ==========================================
   // CLEANUP
-  // ==========================================
   @override
   void dispose() {
     // Always dispose controllers to prevent memory leaks
@@ -65,98 +50,46 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
-  // ==========================================
   // CHANGE PASSWORD LOGIC
-  // ==========================================
   Future<void> _changePassword() async {
-    // Step 1: Validate the form
+    // 1: Validate the form
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    // Step 2: Check if current password is correct
-    if (_currentPasswordController.text != widget.user.password) {
-      _showError('Current password is incorrect');
-      return;
-    }
-
-    // Step 3: Check if new password is same as current
-    if (_newPasswordController.text == widget.user.password) {
-      _showError('New password must be different from current password');
-      return;
-    }
-
-    // Step 4: Show loading spinner
+    // 2: Show loading spinner
     setState(() {
       _isSaving = true;
     });
 
-    try {
-      // Step 5: Create updated user with new password
-      final updatedUser = User(
-        id: widget.user.id,
-        name: widget.user.name,
-        email: widget.user.email,
-        password: _newPasswordController.text, // New password
-        age: widget.user.age,
-        gender: widget.user.gender,
-        weight: widget.user.weight,
-        height: widget.user.height,
-        selectedPlan: widget.user.selectedPlan,
-        selectedLevel: widget.user.selectedLevel,
-        selectedCategories: widget.user.selectedCategories,
-        selectedDays: widget.user.selectedDays,
-        hasCompletedAssessment: widget.user.hasCompletedAssessment,
-      );
+    // 3: Attempt password change via service
+    final result = await _authService.changePassword(
+      user: widget.user,
+      currentPassword: _currentPasswordController.text,
+      newPassword: _newPasswordController.text,
+    );
 
-      // Step 6: Save to database
-      await _userRepository.saveUser(updatedUser);
-
-      // Step 7: Notify parent and go back
+    // 4: Handle result
+    if (result.isSuccess && result.user != null) {
       if (mounted) {
-        widget.onPasswordChanged(updatedUser);
-        _showSuccess('Password changed successfully!');
+        widget.onPasswordChanged(result.user!);
+        context.showSuccess('Password changed successfully!');
         Navigator.pop(context);
       }
-    } catch (e) {
-      _showError('Failed to change password. Please try again.');
-    } finally {
-      // Step 8: Hide loading spinner
+    } else {
       if (mounted) {
-        setState(() {
-          _isSaving = false;
-        });
+        context.showError(result.errorMessage ?? 'Failed to change password');
       }
+    }
+
+    // 5: Hide loading spinner
+    if (mounted) {
+      setState(() {
+        _isSaving = false;
+      });
     }
   }
 
-  // ==========================================
-  // HELPER METHODS FOR SHOWING MESSAGES
-  // ==========================================
-
-  /// Shows a red error message at the bottom of the screen
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
-
-  /// Shows a green success message at the bottom of the screen
-  void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  // ==========================================
-  // MAIN BUILD METHOD
-  // ==========================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -192,10 +125,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               // Instructions text
               Text(
                 'Enter your current password and choose a new password.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               ),
               const SizedBox(height: 32),
 
@@ -271,7 +201,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.orange[800], size: 20),
+                    Icon(
+                      Icons.info_outline,
+                      color: Colors.orange[800],
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -295,11 +229,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 
-  // ==========================================
-  // UI BUILDING METHODS
-  // ==========================================
-
-  /// Creates a password text field with visibility toggle
+  /// UI BUILDING METHODS
+  // Creates a password text field with visibility toggle
   Widget _buildPasswordField({
     required TextEditingController controller,
     required String label,
@@ -368,7 +299,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 
-  /// Creates the Save button at the bottom
+  // Creates the Save button at the bottom
   Widget _buildSaveButton() {
     return Padding(
       padding: const EdgeInsets.all(20),

@@ -1,19 +1,8 @@
 import 'package:flutter/material.dart';
 import '../data/repositories/settings_repository.dart';
-import '../data/datasources/database_helper.dart';
+import '../data/database/database_helper.dart';
 import 'pages/authentication/login_screen.dart';
 import 'pages/home/home_screen.dart';
-
-/// ============================================
-/// START SCREEN (Splash Screen)
-/// ============================================
-/// This is the first screen users see when opening the app.
-/// It shows the logo with a fade animation, then navigates to:
-/// - HomeScreen (if user is logged in)
-/// - LoginScreen (if user is not logged in)
-/// 
-/// User can tap anywhere to skip the intro animation.
-/// ============================================
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -24,16 +13,15 @@ class StartScreen extends StatefulWidget {
 
 class _StartScreenState extends State<StartScreen>
     with SingleTickerProviderStateMixin {
-  
   // Animation controller manages the animation timing
   late AnimationController _animationController;
-  
+
   // Fade animation: logo goes from invisible (0) to visible (1)
   late Animation<double> _fadeAnimation;
-  
+
   // Scale animation: logo grows from 80% to 100% size
   late Animation<double> _scaleAnimation;
-  
+
   // Flag to prevent navigating multiple times if user taps repeatedly
   bool _isNavigating = false;
 
@@ -44,7 +32,7 @@ class _StartScreenState extends State<StartScreen>
     _startSplashTimer();
   }
 
-  /// Set up the fade and scale animations for the logo
+  // Set up the fade and scale animations for the logo
   void _setupAnimations() {
     // Create animation controller (1.5 seconds duration)
     _animationController = AnimationController(
@@ -54,10 +42,7 @@ class _StartScreenState extends State<StartScreen>
 
     // Fade animation: 0.0 (invisible) to 1.0 (fully visible)
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeIn,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
 
     // Scale animation: 0.8 (80% size) to 1.0 (full size)
@@ -72,7 +57,7 @@ class _StartScreenState extends State<StartScreen>
     _animationController.forward();
   }
 
-  /// Wait for splash duration, then navigate to next screen
+  // Wait for splash duration, then navigate to next screen
   Future<void> _startSplashTimer() async {
     try {
       // Initialize the database while showing splash
@@ -89,13 +74,13 @@ class _StartScreenState extends State<StartScreen>
     }
   }
 
-  /// Called when user taps the screen to skip intro
+  // Called when user taps the screen to skip intro
   void _skipIntro() {
     if (_isNavigating) return; // Already navigating, ignore tap
     _goToNextScreen();
   }
 
-  /// Navigate to Home or Login based on login status
+  // Navigate to Home or Login based on login status
   Future<void> _goToNextScreen() async {
     // Prevent multiple navigations
     if (_isNavigating || !mounted) return;
@@ -127,7 +112,7 @@ class _StartScreenState extends State<StartScreen>
     }
   }
 
-  /// Go directly to login screen (used when errors occur)
+  // Go directly to login screen (used when errors occur)
   void _goToLoginScreen() {
     if (!mounted || _isNavigating) return;
     _isNavigating = true;

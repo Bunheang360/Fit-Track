@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-// ====================
-// 4. FEATURE ITEM (for Assessment intro screen)
-// ====================
+// FEATURE ITEM (for Assessment intro screen)
 class FeatureItem extends StatelessWidget {
   final IconData icon;
   final String title;

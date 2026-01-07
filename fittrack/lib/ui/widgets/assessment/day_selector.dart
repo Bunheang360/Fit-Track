@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-// ====================
-// 5. DAY SELECTOR (for Schedule page)
-// ====================
+// DAY SELECTOR (for Schedule page)
 class DaySelector extends StatelessWidget {
   final String dayName;
   final bool isSelected;

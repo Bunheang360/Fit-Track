@@ -1,29 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/user.dart';
-import '../../../data/repositories/user_repository.dart';
-import '../../../data/repositories/settings_repository.dart';
+import '../../../services/user_service.dart';
 import '../../../core/constants/enums.dart';
+import '../../utils/snackbar_utils.dart';
 import '../home/home_screen.dart';
 import '../../widgets/assessment/slider_question.dart';
 import '../../widgets/assessment/single_select_question.dart';
 import '../../widgets/assessment/multi_select_question.dart';
 
-// ============================================================================
-// ASSESSMENT QUESTIONS SCREEN
-// ============================================================================
-/// This screen shows 8 questions to collect user fitness data:
-/// 1. Age (slider)
-/// 2. Gender (single select)
-/// 3. Weight (slider)
-/// 4. Height (slider)
-/// 5. Plan - Home/Gym (single select)
-/// 6. Categories - Abs/Arms/etc (multi select)
-/// 7. Level - Beginner/Intermediate/Advanced (single select)
-/// 8. Schedule - Mon-Sun (multi select)
 class AssessmentQuestionsScreen extends StatefulWidget {
-  // ==========================================
-  // CONSTRUCTOR PARAMETERS
-  // ==========================================
   /// User credentials from signup screen
   final String username;
   final String email;
@@ -42,21 +26,14 @@ class AssessmentQuestionsScreen extends StatefulWidget {
 }
 
 class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
-  // ==========================================
-  // CONTROLLERS & REPOSITORIES
-  // ==========================================
+  // CONTROLLERS & SERVICES
   final PageController _pageController = PageController();
-  final _userRepository = UserRepository();
-  final _settingsRepository = SettingsRepository();
+  final _userService = UserService();
 
-  // ==========================================
   // STATE VARIABLES
-  // ==========================================
   int _currentPage = 0;
 
-  // ==========================================
-  // USER ANSWERS (Assessment Data)
-  // ==========================================
+  /// USER ANSWERS (Assessment Data)
   int age = 25;
   Gender selectedGender = Gender.male;
   double weight = 70.0;
@@ -66,25 +43,22 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
   List<Categories> selectedCategories = [];
   List<DayOfWeek> selectedDays = [];
 
-  // ==========================================
-  // GO TO NEXT PAGE
-  // ==========================================
-  /// Validates current page and moves to next question.
-  /// On last page, completes the assessment.
+  /// NEXT PAGE NAVIGATION
+  // Validates current page and moves to next question. On last page, completes the assessment.
   void _nextPage() {
-    // Step 1: Validate categories page
+    // Validate categories page
     if (_currentPage == 5 && selectedCategories.isEmpty) {
       _showError('Please select at least one category');
       return;
     }
 
-    // Step 2: Validate schedule page
+    // Validate schedule page
     if (_currentPage == 7 && selectedDays.isEmpty) {
       _showError('Please select at least one day');
       return;
     }
 
-    // Step 3: Go to next page or complete assessment
+    // Go to next page or complete assessment
     if (_currentPage < 7) {
       _goToNextQuestion();
     } else {
@@ -92,9 +66,7 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     }
   }
 
-  // ==========================================
-  // GO TO NEXT QUESTION (ANIMATE)
-  // ==========================================
+  /// GO TO NEXT QUESTION
   void _goToNextQuestion() {
     _pageController.nextPage(
       duration: const Duration(milliseconds: 300),
@@ -102,9 +74,7 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     );
   }
 
-  // ==========================================
-  // GO TO PREVIOUS PAGE
-  // ==========================================
+  /// GO TO PREVIOUS PAGE
   void _previousPage() {
     if (_currentPage > 0) {
       _pageController.previousPage(
@@ -114,67 +84,51 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     }
   }
 
-  // ==========================================
-  // SHOW ERROR MESSAGE
-  // ==========================================
+  /// SHOW ERROR MESSAGE
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    context.showError(message);
   }
 
-  // ==========================================
-  // SHOW SUCCESS MESSAGE
-  // ==========================================
+  /// SHOW SUCCESS MESSAGE
   void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    context.showSuccess(message);
   }
 
-  // ==========================================
-  // COMPLETE ASSESSMENT & SAVE USER
-  // ==========================================
-  /// Creates user account with all assessment data and navigates to home.
+  /// COMPLETE ASSESSMENT & SAVE USER
+  // Creates user account with all assessment data and navigates to home.
   Future<void> _completeAssessment() async {
-    try {
-      // Step 1: Show loading dialog
-      _showLoadingDialog();
+    // 1: Show loading dialog
+    _showLoadingDialog();
 
-      // Step 2: Create user with assessment data
-      final user = _createUserFromAssessment();
+    // 2: Create user via service
+    final result = await _userService.createUser(
+      username: widget.username,
+      email: widget.email,
+      password: widget.password,
+      age: age,
+      gender: selectedGender,
+      weight: weight,
+      height: height,
+      selectedPlan: selectedPlan,
+      selectedLevel: selectedLevel,
+      selectedCategories: selectedCategories,
+      selectedDays: selectedDays,
+    );
 
-      // Step 3: Save user to database
-      await _userRepository.saveUser(user);
+    // 3: Close loading dialog
+    if (mounted) Navigator.of(context).pop();
 
-      // Step 4: Mark as logged in
-      await _settingsRepository.setLoggedIn(user.id, widget.username);
-
-      // Step 5: Close loading and show success
-      if (mounted) Navigator.of(context).pop();
+    // 4: Handle result
+    if (result.isSuccess) {
       _showSuccess('Profile created successfully!');
-
-      // Step 6: Navigate to home screen
       await Future.delayed(const Duration(milliseconds: 800));
       _goToHomeScreen();
-    } catch (e) {
-      // If error, close loading and show error
-      if (mounted) Navigator.of(context).pop();
-      _showError('Failed to save profile. Please try again.');
+    } else {
+      _showError(result.errorMessage ?? 'Failed to save profile');
     }
   }
 
-  // ==========================================
   // SHOW LOADING DIALOG
-  // ==========================================
   void _showLoadingDialog() {
     showDialog(
       context: context,
@@ -187,29 +141,7 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     );
   }
 
-  // ==========================================
-  // CREATE USER FROM ASSESSMENT DATA
-  // ==========================================
-  User _createUserFromAssessment() {
-    return User(
-      name: widget.username,
-      email: widget.email,
-      password: widget.password,
-      age: age,
-      gender: selectedGender,
-      weight: weight,
-      height: height,
-      selectedPlan: selectedPlan,
-      selectedLevel: selectedLevel,
-      selectedCategories: selectedCategories,
-      selectedDays: selectedDays,
-      hasCompletedAssessment: true,
-    );
-  }
-
-  // ==========================================
-  // GO TO HOME SCREEN
-  // ==========================================
+  /// HOME SCREEN NAVIGATION
   void _goToHomeScreen() {
     if (mounted) {
       Navigator.pushReplacement(
@@ -219,9 +151,13 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     }
   }
 
-  // ==========================================
-  // BUILD UI
-  // ==========================================
+  /// CLEANUP
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -231,9 +167,7 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     );
   }
 
-  // ==========================================
-  // BUILD APP BAR
-  // ==========================================
+  // APP BAR
   AppBar _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.white,
@@ -251,9 +185,7 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     );
   }
 
-  // ==========================================
-  // BUILD QUESTION PAGES
-  // ==========================================
+  /// QUESTION PAGES
   Widget _buildQuestionPages() {
     return PageView(
       controller: _pageController,
@@ -264,21 +196,19 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
         });
       },
       children: [
-        _buildAgeQuestion(), // Page 1
-        _buildGenderQuestion(), // Page 2
-        _buildWeightQuestion(), // Page 3
-        _buildHeightQuestion(), // Page 4
-        _buildPlanQuestion(), // Page 5
-        _buildCategoryQuestion(), // Page 6
-        _buildLevelQuestion(), // Page 7
-        _buildScheduleQuestion(), // Page 8
+        _buildAgeQuestion(),
+        _buildGenderQuestion(),
+        _buildWeightQuestion(),
+        _buildHeightQuestion(),
+        _buildPlanQuestion(),
+        _buildCategoryQuestion(),
+        _buildLevelQuestion(),
+        _buildScheduleQuestion(),
       ],
     );
   }
 
-  // ==========================================
-  // PAGE 1: AGE QUESTION
-  // ==========================================
+  /// 1: AGE QUESTION
   Widget _buildAgeQuestion() {
     return SliderQuestion(
       title: "What's your Age?",
@@ -292,9 +222,7 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     );
   }
 
-  // ==========================================
-  // PAGE 2: GENDER QUESTION
-  // ==========================================
+  /// 2: GENDER QUESTION
   Widget _buildGenderQuestion() {
     return SingleSelectQuestion(
       title: "What is your gender?",
@@ -310,9 +238,7 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     );
   }
 
-  // ==========================================
-  // PAGE 3: WEIGHT QUESTION
-  // ==========================================
+  /// 3: WEIGHT QUESTION
   Widget _buildWeightQuestion() {
     return SliderQuestion(
       title: "What's your current\nweight right now?",
@@ -326,9 +252,7 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     );
   }
 
-  // ==========================================
-  // PAGE 4: HEIGHT QUESTION
-  // ==========================================
+  /// 4: HEIGHT QUESTION
   Widget _buildHeightQuestion() {
     return SliderQuestion(
       title: "What is your height?",
@@ -343,9 +267,7 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     );
   }
 
-  // ==========================================
-  // PAGE 5: PLAN QUESTION (HOME/GYM)
-  // ==========================================
+  /// 5: PLAN QUESTION (HOME/GYM)
   Widget _buildPlanQuestion() {
     return SingleSelectQuestion(
       title: "Select your plan",
@@ -372,9 +294,7 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     );
   }
 
-  // ==========================================
-  // PAGE 6: CATEGORY QUESTION
-  // ==========================================
+  /// 6: CATEGORY QUESTION
   Widget _buildCategoryQuestion() {
     // Build category options list
     List<MultiSelectOption> categoryOptions = [];
@@ -408,9 +328,7 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     );
   }
 
-  // ==========================================
-  // PAGE 7: LEVEL QUESTION
-  // ==========================================
+  /// 7: LEVEL QUESTION
   Widget _buildLevelQuestion() {
     return SingleSelectQuestion(
       title: "Select the level",
@@ -435,9 +353,7 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
     );
   }
 
-  // ==========================================
-  // PAGE 8: SCHEDULE QUESTION
-  // ==========================================
+  /// 8: SCHEDULE QUESTION
   Widget _buildScheduleQuestion() {
     // Build day options list
     List<MultiSelectOption> dayOptions = [];
@@ -468,14 +384,5 @@ class _AssessmentQuestionsScreenState extends State<AssessmentQuestionsScreen> {
       isLastPage: true,
       style: MultiSelectStyle.grid,
     );
-  }
-
-  // ==========================================
-  // CLEANUP
-  // ==========================================
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
   }
 }
