@@ -70,9 +70,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
 
     // 4: Handle result
-    if (result.isSuccess && result.data != null) {
+    if (result.isSuccess && result.user != null) {
       if (mounted) {
-        widget.onPasswordChanged(result.data!);
+        widget.onPasswordChanged(result.user!);
         context.showSuccess('Password changed successfully!');
         Navigator.pop(context);
       }

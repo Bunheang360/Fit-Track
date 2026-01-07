@@ -297,7 +297,9 @@ class WorkoutPlan {
 
   // Goals from service
   static int get warmupGoal => WorkoutService.warmupGoal;
+
   static int get mainWorkoutGoal => WorkoutService.mainWorkoutGoal;
+
   static int get cooldownGoal => WorkoutService.cooldownGoal;
 
   int get totalExercises =>
@@ -305,7 +307,9 @@ class WorkoutPlan {
 
   /// Check if user has enough exercises to meet goals
   bool get hasEnoughWarmup => warmupExercises.length >= warmupGoal;
+
   bool get hasEnoughMain => mainExercises.length >= mainWorkoutGoal;
+
   bool get hasEnoughCooldown => cooldownExercises.length >= cooldownGoal;
 
   /// Estimated duration based on user level
