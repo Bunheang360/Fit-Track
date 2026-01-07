@@ -116,24 +116,6 @@ class DatabaseHelper {
     }
   }
 
-  Future<void> resetDatabase() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, _dbName);
-    if (_database != null) {
-      await _database!.close();
-      _database = null;
-    }
-    await deleteDatabase(path);
-    _database = await _initDatabase();
-  }
-
-  Future<void> close() async {
-    if (_database != null) {
-      await _database!.close();
-      _database = null;
-    }
-  }
-
   // Mapping Utilities (public for repositories)
 
   Map<String, dynamic> userToMap(User user) => {

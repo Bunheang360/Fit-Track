@@ -9,10 +9,6 @@ class SettingsRepository {
 
   SharedPreferences? _prefs;
 
-  Future<void> init() async {
-    _prefs ??= await SharedPreferences.getInstance();
-  }
-
   Future<SharedPreferences> get _preferences async {
     _prefs ??= await SharedPreferences.getInstance();
     return _prefs!;
@@ -31,15 +27,6 @@ class SettingsRepository {
     try {
       final prefs = await _preferences;
       return prefs.getString(_keyUserId);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Future<String?> getCurrentUsername() async {
-    try {
-      final prefs = await _preferences;
-      return prefs.getString(_keyUsername);
     } catch (e) {
       return null;
     }
@@ -64,28 +51,6 @@ class SettingsRepository {
       await prefs.remove(_keyUsername);
     } catch (e) {
       // Silently fail on logout errors
-    }
-  }
-
-  /// Clears login-related settings only.
-  Future<void> clear() async {
-    try {
-      final prefs = await _preferences;
-      await prefs.remove(_keyIsLoggedIn);
-      await prefs.remove(_keyUserId);
-      await prefs.remove(_keyUsername);
-    } catch (e) {
-      // Silently fail on clear errors
-    }
-  }
-
-  /// Clears all settings from SharedPreferences.
-  Future<void> clearAll() async {
-    try {
-      final prefs = await _preferences;
-      await prefs.clear();
-    } catch (e) {
-      // Silently fail
     }
   }
 }

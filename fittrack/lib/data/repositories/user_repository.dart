@@ -7,16 +7,6 @@ class UserRepository {
 
   Future<Database> get _db async => await _dbHelper.database;
 
-  Future<List<User>> getAllUsers() async {
-    try {
-      final db = await _db;
-      final maps = await db.query('users');
-      return maps.map((m) => _dbHelper.userFromMap(m)).toList();
-    } catch (e) {
-      return [];
-    }
-  }
-
   Future<void> saveUser(User user) async {
     final db = await _db;
     final existingUser = await getUserById(user.id);
@@ -60,22 +50,6 @@ class UserRepository {
         'users',
         where: 'LOWER(name) = LOWER(?)',
         whereArgs: [username],
-      );
-      if (maps.isEmpty) return null;
-      return _dbHelper.userFromMap(maps.first);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Future<User?> getUserByEmail(String email) async {
-    try {
-      if (email.trim().isEmpty) return null;
-      final db = await _db;
-      final maps = await db.query(
-        'users',
-        where: 'LOWER(email) = LOWER(?)',
-        whereArgs: [email],
       );
       if (maps.isEmpty) return null;
       return _dbHelper.userFromMap(maps.first);

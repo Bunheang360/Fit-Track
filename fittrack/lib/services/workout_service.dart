@@ -220,18 +220,6 @@ class WorkoutService {
     );
   }
 
-  // ==================== EXERCISE HELPERS ====================
-
-  /// Gets the remaining exercises for a workout section.
-  List<Exercise> getRemainingExercises(
-    List<Exercise> allExercises,
-    Set<String> completedIds,
-  ) {
-    return allExercises
-        .where((exercise) => !completedIds.contains(exercise.id))
-        .toList();
-  }
-
   // ==================== EXERCISE COMPLETION ====================
 
   /// Saves an exercise session when user completes an exercise.
@@ -272,11 +260,6 @@ class WorkoutService {
     return user.selectedDays.contains(today);
   }
 
-  /// Check if a specific day is a workout day for the user
-  bool isWorkoutDay(User user, DayOfWeek day) {
-    return user.selectedDays.contains(day);
-  }
-
   /// Gets the name of the next workout day.
   String getNextWorkoutDay(User user) {
     final now = DateTime.now();
@@ -290,11 +273,6 @@ class WorkoutService {
       }
     }
     return 'Not scheduled';
-  }
-
-  /// Get the number of workout days completed this week
-  int getWorkoutDaysThisWeek(User user) {
-    return user.selectedDays.length;
   }
 }
 

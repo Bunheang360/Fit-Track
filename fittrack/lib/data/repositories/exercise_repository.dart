@@ -87,21 +87,3 @@ class ExerciseRepository {
     }).toList();
   }
 }
-
-/// Simple data container for exercises by section (no business logic)
-class ExercisesBySection {
-  final List<Exercise> warmupExercises;
-  final List<Exercise> mainExercises;
-  final List<Exercise> cooldownExercises;
-
-  ExercisesBySection({
-    required this.warmupExercises,
-    required this.mainExercises,
-    required this.cooldownExercises,
-  });
-
-  int get totalExercises =>
-      warmupExercises.length + mainExercises.length + cooldownExercises.length;
-
-  bool get isEmpty => totalExercises == 0;
-}
